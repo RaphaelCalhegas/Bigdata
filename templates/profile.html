@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Profil - ImmoInsight Pro{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- En-tête profil -->
+    <div class="scroll-reveal">
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white shadow-xl">
+            <div class="flex items-center space-x-5">
+                <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">{{ user.username }}</h1>
+                    <p class="text-emerald-100 text-sm">{{ user.email }}</p>
+                    <p class="text-emerald-200 text-xs mt-1">
+                        Membre depuis le {{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}
+                    </p>
+                </div>
+                <div class="ml-auto">
+                    <a href="{{ url_for('logout') }}"
+                        class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/20">
+                        Se déconnecter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Recommandations personnalisées -->
+        <div class="scroll-reveal">
+            <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800">Recommandations</h2>
+                    </div>
+                    <button
+                        onclick="refreshRecommendations()"
+                        id="refresh-btn"
+                        class="px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200">
+                        Actualiser
+                    </button>
+                </div>
+
+                <div id="recommendations-container" class="divide-y divide-slate-50">
+                    {% if recommendations %}
+                        {% for rec in recommendations %}
+                        <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-800 text-sm">Commune {{ rec.code_commune }}</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">{{ rec.raison }}</p>
+                                    <div class="flex items-center space-x-3 mt-2">
+                                        <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
+                                            {{ "{:,.0f}".format(rec.prix_m2_median) }} €/m²
+                                        </span>
+                                        <span class="text-xs text-slate-400">
+                                            {{ rec.nb_transactions }} transactions
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-right ml-4">
+                                    <p class="text-sm font-bold text-slate-800">
+                                        {{ "{:,.0f}".format(rec.prix_estime) }} €
+                                    </p>
+                                    <p class="text-xs text-slate-400">estimé</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="px-6 py-12 text-center">
+                            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                            </div>
+                            <p class="text-sm font-medium text-slate-600">Aucune recommandation disponible</p>
+                            <p class="text-xs text-slate-400 mt-1">Effectuez quelques recherches pour obtenir des suggestions personnalisées.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Historique des recherches -->
+        <div class="scroll-reveal" style="animation-delay: 0.1s;">
+            <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-teal-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-800">Historique des recherches</h2>
+                </div>
+
+                <div class="divide-y divide-slate-50 max-h-[480px] overflow-y-auto">
+                    {% if history %}
+                        {% for item in history %}
+                        <div class="px-6 py-4 hover:bg-slate-50/50 transition-colors duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+                                        {% if item.type == 'estimation' %}bg-emerald-50
+                                        {% elif item.type == 'similaires' %}bg-blue-50
+                                        {% elif item.type == 'opportunites' %}bg-amber-50
+                                        {% else %}bg-slate-50{% endif %}">
+                                        {% if item.type == 'estimation' %}
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                        {% elif item.type == 'similaires' %}
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        {% elif item.type == 'opportunites' %}
+                                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {% else %}
+                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-slate-700 capitalize">{{ item.type }}</p>
+                                        {% if item.data.get('code_commune') %}
+                                        <p class="text-xs text-slate-400">Commune : {{ item.data.code_commune }}</p>
+                                        {% elif item.data.get('code_dept') %}
+                                        <p class="text-xs text-slate-400">Département : {{ item.data.code_dept }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    {% if item.data.get('prix_estime') %}
+                                    <p class="text-sm font-semibold text-emerald-600">
+                                        {{ "{:,.0f}".format(item.data.prix_estime) }} €
+                                    </p>
+                                    {% endif %}
+                                    <p class="text-xs text-slate-400">
+                                        {{ item.created_at.strftime('%d/%m %H:%M') if item.created_at else '' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="px-6 py-12 text-center">
+                            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-sm font-medium text-slate-600">Aucune recherche effectuée</p>
+                            <p class="text-xs text-slate-400 mt-1">Votre historique apparaîtra ici au fil de vos recherches.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function refreshRecommendations() {
+        const btn = document.getElementById('refresh-btn');
+        const container = document.getElementById('recommendations-container');
+
+        btn.textContent = 'Chargement...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/recommendations/refresh', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success && data.recommendations.length > 0) {
+                container.innerHTML = data.recommendations.map(rec => `
+                    <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p class="font-semibold text-slate-800 text-sm">Commune ${rec.code_commune}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">${rec.raison}</p>
+                                <div class="flex items-center space-x-3 mt-2">
+                                    <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
+                                        ${rec.prix_m2_median.toLocaleString('fr-FR')} €/m²
+                                    </span>
+                                    <span class="text-xs text-slate-400">${rec.nb_transactions} transactions</span>
+                                </div>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="text-sm font-bold text-slate-800">
+                                    ${rec.prix_estime.toLocaleString('fr-FR')} €
+                                </p>
+                                <p class="text-xs text-slate-400">estimé</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="px-6 py-12 text-center">
+                        <p class="text-sm text-slate-500">Effectuez davantage de recherches pour obtenir des recommandations.</p>
+                    </div>`;
+            }
+        } catch (error) {
+            container.innerHTML = `
+                <div class="px-6 py-4 text-center">
+                    <p class="text-sm text-red-500">Erreur lors du chargement des recommandations.</p>
+                </div>`;
+        } finally {
+            btn.textContent = 'Actualiser';
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription - ImmoInsight Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center py-12">
+    <div class="w-full max-w-md">
+
+        <!-- En-tête -->
+        <div class="text-center mb-8 scroll-reveal">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl shadow-lg mb-4">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                Créer un compte
+            </h1>
+            <p class="text-slate-500 mt-2 text-sm">Rejoignez ImmoInsight Pro et bénéficiez de recommandations personnalisées</p>
+        </div>
+
+        <!-- Alertes Flask -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="mb-4 px-4 py-3 rounded-xl text-sm font-medium
+                    {% if category == 'danger' %}bg-red-50 text-red-700 border border-red-200
+                    {% elif category == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulaire -->
+        <div class="bg-white rounded-2xl shadow-xl border border-emerald-100 p-8 scroll-reveal">
+            <form method="POST" action="{{ url_for('register') }}" class="space-y-5">
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Nom d'utilisateur
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            name="username"
+                            required
+                            minlength="3"
+                            placeholder="johndoe"
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-slate-700 bg-slate-50 hover:bg-white"
+                        />
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Minimum 3 caractères</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Adresse email
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                        </div>
+                        <input
+                            type="email"
+                            name="email"
+                            required
+                            placeholder="votre@email.com"
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-slate-700 bg-slate-50 hover:bg-white"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Mot de passe
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            required
+                            minlength="8"
+                            placeholder="••••••••"
+                            class="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-slate-700 bg-slate-50 hover:bg-white"
+                        />
+                        <button
+                            type="button"
+                            onclick="togglePassword()"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Minimum 8 caractères</p>
+                </div>
+
+                <!-- Indicateur de force du mot de passe -->
+                <div id="password-strength" class="hidden">
+                    <div class="flex gap-1 mb-1">
+                        <div id="bar-1" class="h-1 flex-1 rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="bar-2" class="h-1 flex-1 rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="bar-3" class="h-1 flex-1 rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="bar-4" class="h-1 flex-1 rounded-full bg-slate-200 transition-all duration-300"></div>
+                    </div>
+                    <p id="strength-label" class="text-xs text-slate-400"></p>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 glow mt-2">
+                    Créer mon compte
+                </button>
+
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-500">
+                    Déjà un compte ?
+                    <a href="{{ url_for('login') }}" class="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+                        Se connecter
+                    </a>
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword() {
+        const input = document.getElementById('password');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    document.getElementById('password').addEventListener('input', function () {
+        const val = this.value;
+        const strengthDiv = document.getElementById('password-strength');
+        const label = document.getElementById('strength-label');
+        const bars = [
+            document.getElementById('bar-1'),
+            document.getElementById('bar-2'),
+            document.getElementById('bar-3'),
+            document.getElementById('bar-4'),
+        ];
+
+        if (val.length === 0) {
+            strengthDiv.classList.add('hidden');
+            return;
+        }
+
+        strengthDiv.classList.remove('hidden');
+
+        let score = 0;
+        if (val.length >= 8)  score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const colors  = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-500'];
+        const labels  = ['Très faible', 'Faible', 'Moyen', 'Fort'];
+
+        bars.forEach((bar, i) => {
+            bar.className = 'h-1 flex-1 rounded-full transition-all duration-300 ' +
+                (i < score ? colors[score - 1] : 'bg-slate-200');
+        });
+
+        label.textContent = labels[score - 1] || '';
+    });
+</script>
+{% endblock %}
