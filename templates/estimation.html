@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Estimation de Bien - Clustering Immo{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12 fade-in">
+        <h1
+            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            Estimation Immobilière IA
+        </h1>
+        <p class="text-xl text-gray-600">Estimez le prix de votre bien en quelques secondes grâce au machine learning
+        </p>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-8">
+        <!-- Formulaire -->
+        <div class="lg:col-span-2">
+            <div class="card hover-lift sticky top-24">
+                <div class="card-header">
+                    <h2 class="text-2xl font-bold flex items-center space-x-3">
+                        <i class="fas fa-calculator text-2xl"></i>
+                        <span>Caractéristiques du bien</span>
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form id="estimationForm" class="space-y-6">
+                        <div>
+                            <label for="surface" class="form-label">
+                                <i class="fas fa-ruler-combined text-emerald-600 mr-2"></i>
+                                Surface habitable (m²)
+                            </label>
+                            <input type="number" class="form-control" id="surface" name="surface" min="10" max="500"
+                                step="0.1" required placeholder="Ex: 65">
+                            <p class="text-sm text-gray-500 mt-2">Entre 10 et 500 m²</p>
+                        </div>
+
+                        <div>
+                            <label for="nb_pieces" class="form-label">
+                                <i class="fas fa-door-open text-emerald-600 mr-2"></i>
+                                Nombre de pièces
+                            </label>
+                            <input type="number" class="form-control" id="nb_pieces" name="nb_pieces" min="1" max="10"
+                                step="0.5" required placeholder="Ex: 3">
+                            <p class="text-sm text-gray-500 mt-2">T1 = 1, T2 = 2, T3 = 3, etc.</p>
+                        </div>
+
+                        <div>
+                            <label for="code_commune" class="form-label">
+                                <i class="fas fa-map-marker-alt text-emerald-600 mr-2"></i>
+                                Code Commune (INSEE)
+                            </label>
+                            <input type="text" class="form-control" id="code_commune" name="code_commune" required
+                                placeholder="Ex: 75101" maxlength="5">
+                            <p class="text-sm text-gray-500 mt-2">
+                                Code à 5 chiffres
+                                <a href="https://www.insee.fr/fr/recherche/recherche-geographique" target="_blank"
+                                    class="text-emerald-600 hover:underline">
+                                    <i class="fas fa-external-link-alt"></i> Rechercher
+                                </a>
+                            </p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full text-lg">
+                            <i class="fas fa-magic text-xl"></i>
+                            <span>Estimer maintenant</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résultats (masqué par défaut) -->
+        <div class="lg:col-span-3">
+            <!-- Message initial -->
+            <div id="instructionsCard" class="card hover-lift">
+                <div class="card-body text-center py-20">
+                    <div class="inline-block p-8 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-6">
+                        <i class="fas fa-home text-6xl text-emerald-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Prêt à estimer votre bien ?</h3>
+                    <p class="text-lg text-gray-600 max-w-md mx-auto">
+                        Remplissez le formulaire avec les caractéristiques de votre appartement pour obtenir une
+                        estimation basée sur 302 000 transactions réelles.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Résultats (masqué par défaut) -->
+            <div id="resultsCard" class="hidden fade-in">
+                <!-- Prix principal -->
+                <div class="card hover-lift mb-8">
+                    <div class="card-body text-center py-12">
+                        <p class="text-lg text-gray-600 mb-4 font-semibold uppercase tracking-wide">Prix Estimé</p>
+                        <h2 class="price-display mb-4" id="prixEstime">-</h2>
+                        <p class="text-2xl text-gray-500">Soit <span class="font-bold text-gray-700"
+                                id="prixM2">-</span> €/m²</p>
+                    </div>
+                </div>
+
+                <!-- Fourchette -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div class="card hover-lift border-2 border-red-200">
+                        <div class="card-body text-center">
+                            <i class="fas fa-arrow-down text-4xl text-red-500 mb-4"></i>
+                            <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Prix Minimum</p>
+                            <h4 class="text-3xl font-bold text-red-600" id="prixMin">-</h4>
+                        </div>
+                    </div>
+                    <div class="card hover-lift border-2 border-green-200">
+                        <div class="card-body text-center">
+                            <i class="fas fa-arrow-up text-4xl text-green-500 mb-4"></i>
+                            <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Prix Maximum</p>
+                            <h4 class="text-3xl font-bold text-green-600" id="prixMax">-</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Standing -->
+                <div class="alert alert-info mb-8" id="standingAlert">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-star text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold mb-2">Standing Relatif</h4>
+                        <div id="standingContent" class="text-lg">-</div>
+                    </div>
+                </div>
+
+                <!-- Contexte local -->
+                <div class="card hover-lift">
+                    <div class="card-body">
+                        <h4 class="text-2xl font-bold mb-6 flex items-center space-x-3">
+                            <i class="fas fa-map-marked-alt text-blue-600"></i>
+                            <span>Contexte Marché Local</span>
+                        </h4>
+                        <ul id="communeStats" class="space-y-4 text-lg">
+                            <li class="flex items-center space-x-3">
+                                <i class="fas fa-spinner fa-spin text-blue-600"></i>
+                                <span>Chargement...</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Erreur -->
+            <div id="errorAlert" class="alert alert-danger hidden">
+                <i class="fas fa-exclamation-triangle text-3xl"></i>
+                <div>
+                    <h4 class="font-bold text-xl mb-1">Erreur</h4>
+                    <p id="errorMessage" class="text-lg"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/estimation.js') }}"></script>
+{% endblock %}

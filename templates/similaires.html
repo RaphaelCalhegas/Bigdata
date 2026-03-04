@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Biens Similaires - Clustering Immo{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12 fade-in">
+        <h1
+            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            Recherche de Comparables
+        </h1>
+        <p class="text-xl text-gray-600">Trouvez des biens similaires pour justifier vos estimations</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 space-y-8">
+            <div class="card hover-lift sticky top-24">
+                <div class="card-header">
+                    <h2 class="text-xl font-bold flex items-center space-x-3">
+                        <i class="fas fa-search text-xl"></i>
+                        <span>Critères de Recherche</span>
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form id="searchForm" class="space-y-6">
+                        <div>
+                            <label for="searchSurface" class="form-label">
+                                <i class="fas fa-ruler-combined text-emerald-600 mr-2"></i>
+                                Surface (m²)
+                            </label>
+                            <input type="number" class="form-control" id="searchSurface" min="10" max="500" required
+                                placeholder="Ex: 70">
+                        </div>
+
+                        <div>
+                            <label for="searchPieces" class="form-label">
+                                <i class="fas fa-door-open text-emerald-600 mr-2"></i>
+                                Nombre de pièces
+                            </label>
+                            <input type="number" class="form-control" id="searchPieces" min="1" max="10" step="0.5"
+                                required placeholder="Ex: 3">
+                        </div>
+
+                        <div>
+                            <label for="searchCommune" class="form-label">
+                                <i class="fas fa-map-marker-alt text-emerald-600 mr-2"></i>
+                                Code Commune
+                            </label>
+                            <input type="text" class="form-control" id="searchCommune" required placeholder="Ex: 75101"
+                                maxlength="5">
+                            <p class="text-sm text-gray-500 mt-2">
+                                Recherche dans le même département (±30% surface, ±1 pièce)
+                            </p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full text-lg">
+                            <i class="fas fa-search text-xl"></i>
+                            <span>Trouver des Comparables</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb text-3xl"></i>
+                <div>
+                    <h4 class="font-bold text-lg mb-2">Comment ça marche ?</h4>
+                    <p class="text-base">
+                        L'algorithme recherche des biens vendus récemment dans le même département,
+                        avec des caractéristiques similaires (surface, nombre de pièces).
+                        Les résultats sont triés par ordre de pertinence.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Résultats -->
+            <div id="resultsSection" class="hidden space-y-8 fade-in">
+                <div class="card hover-lift">
+                    <div class="card-header">
+                        <h3 class="text-2xl font-bold flex items-center space-x-3">
+                            <i class="fas fa-check-circle text-2xl text-green-400"></i>
+                            <span><span id="nbResults">0</span> Bien(s) Similaire(s) Trouvé(s)</span>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="overflow-x-auto">
+                            <table class="table" id="tableResults">
+                                <thead>
+                                    <tr>
+                                        <th>Commune</th>
+                                        <th>Prix Total</th>
+                                        <th>Surface</th>
+                                        <th>Pièces</th>
+                                        <th>Prix/m²</th>
+                                        <th>Standing</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mini Carte -->
+                <div class="card hover-lift">
+                    <div class="card-body">
+                        <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
+                            <i class="fas fa-map-marked-alt text-emerald-600 text-2xl"></i>
+                            <span>Localisation des Comparables</span>
+                        </h3>
+                        <div id="miniMap" class="rounded-xl overflow-hidden" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message initial -->
+            <div id="initialCard" class="card hover-lift">
+                <div class="card-body text-center py-20">
+                    <div class="inline-block p-8 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-6">
+                        <i class="fas fa-clipboard-list text-6xl text-emerald-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Lancez une recherche pour voir les biens
+                        similaires</h3>
+                    <p class="text-lg text-gray-600 max-w-md mx-auto">
+                        Les comparables sont essentiels pour justifier un prix de vente ou d'achat.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Erreur -->
+            <div id="errorCard" class="alert alert-danger hidden">
+                <i class="fas fa-exclamation-triangle text-3xl"></i>
+                <div>
+                    <h4 class="font-bold text-xl mb-1">Erreur</h4>
+                    <p id="errorText" class="text-lg"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/similaires.js') }}"></script>
+{% endblock %}

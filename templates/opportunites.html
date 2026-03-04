@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Opportunités d'Investissement - Clustering Immo{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12 fade-in">
+        <h1
+            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            Opportunités d'Investissement
+        </h1>
+        <p class="text-xl text-gray-600">Détection intelligente de biens sous-évalués via Isolation Forest</p>
+    </div>
+
+    <!-- Paramètres -->
+    <div class="card hover-lift mb-8">
+        <div class="card-header">
+            <h2 class="text-2xl font-bold flex items-center space-x-3">
+                <i class="fas fa-sliders-h text-2xl"></i>
+                <span>Paramètres de Détection</span>
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="grid md:grid-cols-4 gap-6">
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-percentage text-emerald-600 mr-2"></i>
+                        Contamination
+                    </label>
+                    <select class="form-control" id="contamination">
+                        <option value="0.01">1% (Strict)</option>
+                        <option value="0.02" selected>2% (Équilibré)</option>
+                        <option value="0.03">3% (Modéré)</option>
+                        <option value="0.04">4% (Souple)</option>
+                        <option value="0.05">5% (Large)</option>
+                    </select>
+                    <p class="text-sm text-gray-500 mt-2">Taux d'anomalies attendu</p>
+                </div>
+
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-chart-line text-emerald-600 mr-2"></i>
+                        Décote Max
+                    </label>
+                    <select class="form-control" id="maxRatio">
+                        <option value="0.85" selected>-15% (Standard)</option>
+                        <option value="0.80">-20% (Intéressant)</option>
+                        <option value="0.75">-25% (Fort potentiel)</option>
+                        <option value="0.70">-30% (Exceptionnel)</option>
+                    </select>
+                    <p class="text-sm text-gray-500 mt-2">vs marché local</p>
+                </div>
+
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-map-marked-alt text-emerald-600 mr-2"></i>
+                        Zone Géographique
+                    </label>
+                    <select class="form-control" id="zoneFilter">
+                        <option value="all" selected>Toutes zones</option>
+                        <option value="1_Metropole_Top15">Métropoles</option>
+                        <option value="2_Ile_de_France">Île-de-France</option>
+                        <option value="3_Zone_Touristique">Zones touristiques</option>
+                        <option value="4_Province_Standard">Province</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button id="btnAnalyze" class="btn btn-primary w-full">
+                        <i class="fas fa-search-dollar text-xl"></i>
+                        <span>Détecter Opportunités</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div id="kpiSection" class="hidden fade-in mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="stat-card text-center border-2 border-emerald-200">
+                <i class="fas fa-gem text-5xl text-emerald-600 mb-4"></i>
+                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Opportunités Trouvées</p>
+                <h3 class="text-4xl font-bold text-emerald-600" id="kpiOpportunities">-</h3>
+            </div>
+            <div class="stat-card text-center border-2 border-teal-200">
+                <i class="fas fa-percentage text-5xl text-teal-600 mb-4"></i>
+                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Décote Médiane</p>
+                <h3 class="text-4xl font-bold text-teal-600" id="kpiDecote">-</h3>
+            </div>
+            <div class="stat-card text-center border-2 border-emerald-200">
+                <i class="fas fa-euro-sign text-5xl text-emerald-600 mb-4"></i>
+                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Prix m² Médian</p>
+                <h3 class="text-4xl font-bold text-emerald-600" id="kpiPrixMedian">-</h3>
+            </div>
+            <div class="stat-card text-center border-2 border-teal-200">
+                <i class="fas fa-expand-arrows-alt text-5xl text-teal-600 mb-4"></i>
+                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Surface Médiane</p>
+                <h3 class="text-4xl font-bold text-teal-600" id="kpiSurface">-</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats -->
+    <div id="resultsSection" class="hidden fade-in">
+        <div class="card hover-lift mb-8">
+            <div class="card-header">
+                <h3 class="text-2xl font-bold flex items-center space-x-3">
+                    <i class="fas fa-trophy text-2xl text-yellow-400"></i>
+                    <span>Top Opportunités (Score d'Investissement)</span>
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="overflow-x-auto">
+                    <table class="table" id="tableOpportunities">
+                        <thead>
+                            <tr>
+                                <th>Score</th>
+                                <th>Décote</th>
+                                <th>Prix Total</th>
+                                <th>Prix m²</th>
+                                <th>Marché Local</th>
+                                <th>Surface</th>
+                                <th>Pièces</th>
+                                <th>Zone</th>
+                                <th>Standing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="9" class="text-center text-gray-500">Aucune donnée</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribution -->
+        <div class="grid lg:grid-cols-2 gap-8">
+            <div class="card hover-lift">
+                <div class="card-body">
+                    <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
+                        <i class="fas fa-chart-bar text-emerald-600 text-2xl"></i>
+                        <span>Distribution des Scores</span>
+                    </h3>
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="chartScores"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card hover-lift">
+                <div class="card-body">
+                    <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
+                        <i class="fas fa-map-marked-alt text-violet-600 text-2xl"></i>
+                        <span>Répartition par Zone</span>
+                    </h3>
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="chartZones"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message initial -->
+    <div id="initialMessage" class="card hover-lift">
+        <div class="card-body text-center py-20">
+            <div class="inline-block p-8 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full mb-6">
+                <i class="fas fa-search-dollar text-6xl text-green-600"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-800 mb-4">Prêt à détecter des opportunités ?</h3>
+            <p class="text-lg text-gray-600 max-w-md mx-auto">
+                L'algorithme Isolation Forest identifie les biens significativement sous-évalués par rapport à leur
+                marché local,
+                avec un système de scoring multi-critères (décote, surface, zone, anomaly score).
+            </p>
+        </div>
+    </div>
+
+    <!-- Erreur -->
+    <div id="errorAlert" class="alert alert-danger hidden">
+        <i class="fas fa-exclamation-triangle text-3xl"></i>
+        <div>
+            <h4 class="font-bold text-xl mb-1">Erreur</h4>
+            <p id="errorMessage" class="text-lg"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/opportunites.js') }}"></script>
+{% endblock %}

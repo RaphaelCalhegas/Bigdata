@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Cartographie - Clustering Immo{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12 fade-in">
+        <h1
+            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            Cartographie Interactive
+        </h1>
+        <p class="text-xl text-gray-600">Visualisez les transactions immobilières et les clusters de marché</p>
+    </div>
+
+    <div class="card hover-lift mb-8">
+        <div class="card-header">
+            <h2 class="text-2xl font-bold flex items-center space-x-3">
+                <i class="fas fa-map-marked-alt text-2xl"></i>
+                <span>Paramètres de la Carte</span>
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-6">
+                <i class="fas fa-info-circle text-3xl"></i>
+                <div>
+                    <p class="text-lg"><strong>Astuce :</strong> Zoomez sur la carte pour voir le détail des
+                        transactions. Les couleurs représentent les différents segments de marché (clusters).</p>
+                    <button onclick="toggleClusterHelp()"
+                        class="mt-2 text-teal-600 hover:text-teal-700 font-semibold flex items-center space-x-2">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Qu'est-ce qu'un segment ?</span>
+                    </button>
+                    <div id="clusterHelp" class="hidden mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <h4 class="font-bold text-emerald-800 mb-2">Les Segments de Marché</h4>
+                        <p class="text-gray-700 text-sm leading-relaxed mb-3" id="clusterExplanation">
+                            Les segments (clusters) sont créés automatiquement par l'algorithme K-Means qui analyse
+                            302,000+ transactions.
+                        </p>
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            L'algorithme regroupe les biens similaires selon 5 critères :
+                        </p>
+                        <ul class="list-disc list-inside text-gray-700 text-sm mt-2 space-y-1 ml-2">
+                            <li>Prix au m² (niveau de marché)</li>
+                            <li>Surface habitable (typologie du bien)</li>
+                            <li>Nombre de pièces (T1, T2, T3...)</li>
+                            <li>Zone géographique (latitude/longitude)</li>
+                            <li>Standing relatif (ratio prix/marché local)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-arrow-down text-emerald-600 mr-2"></i>
+                        Prix m² Minimum
+                    </label>
+                    <input type="number" class="form-control" id="filterPrixMin" placeholder="Ex: 2000">
+                </div>
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-arrow-up text-emerald-600 mr-2"></i>
+                        Prix m² Maximum
+                    </label>
+                    <input type="number" class="form-control" id="filterPrixMax" placeholder="Ex: 8000">
+                </div>
+                <div class="flex items-end">
+                    <button id="btnLoadMap" class="btn btn-primary w-full">
+                        <i class="fas fa-sync-alt text-xl"></i>
+                        <span>Charger la Carte</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carte -->
+    <div class="card hover-lift mb-8">
+        <div id="mapContainer" class="rounded-2xl overflow-hidden"
+            style="height: 600px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="flex justify-center items-center h-full">
+                <div class="text-center text-white">
+                    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-white mx-auto mb-4"></div>
+                    <p class="text-lg font-semibold">Cliquez sur "Charger la Carte"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Légende et Stats -->
+    <div class="grid lg:grid-cols-2 gap-8">
+        <div class="card hover-lift">
+            <div class="card-body">
+                <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
+                    <i class="fas fa-palette text-emerald-600 text-2xl"></i>
+                    <span>Légende des Segments</span>
+                </h3>
+                <div id="legendeContainer">
+                    <p class="text-gray-500 text-lg">Chargez la carte pour voir la légende</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card hover-lift">
+            <div class="card-body">
+                <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
+                    <i class="fas fa-chart-bar text-emerald-600 text-2xl"></i>
+                    <span>Statistiques de la Vue</span>
+                </h3>
+                <ul class="space-y-4 text-lg">
+                    <li class="flex justify-between items-center">
+                        <span class="font-semibold text-gray-700">Points affichés :</span>
+                        <span id="statNbPoints" class="text-emerald-600 font-bold text-2xl">-</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="font-semibold text-gray-700">Prix moyen :</span>
+                        <span id="statPrixMoyen" class="text-teal-600 font-bold text-2xl">-</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="font-semibold text-gray-700">Nb segments :</span>
+                        <span id="statNbClusters" class="text-emerald-600 font-bold text-2xl">-</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+<script>
+    function toggleClusterHelp() {
+        const help = document.getElementById('clusterHelp');
+        help.classList.toggle('hidden');
+    }
+</script>
+<script src="{{ url_for('static', filename='js/cartographie.js') }}"></script>
+{% endblock %}
