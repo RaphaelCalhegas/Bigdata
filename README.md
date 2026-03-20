@@ -581,12 +581,12 @@ MIT License - Libre d'utilisation et modification
 
 ## 👨‍💻 Auteurs
 
-**Adam Halladja** - **Ilias Mouafi** - **Ilias El Abboubi**  
-Projet d'analyse immobilière IA *(CY TECH - ING3 DS - 2026)*
+**Raphael Calhegas** - **Emma Feneau**  
+Projet d'analyse immobilière IA - BIG DATA *(CY TECH - ING3 FINTECH - 2026)*
 
 ---
 
 ## 🙏 Remerciements
 
-- **Enseignant** : KOSSI AMETEPE Folly
+- **Enseignants** : Bruno Ixsil et Julien Savry
 - **data.gouv.fr** : Mise à disposition des données DVF
