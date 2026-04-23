@@ -38,11 +38,12 @@ def fit_isolation_forest(df, contamination=0.02):
     scaler   = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
+    # Réduit à 50 estimateurs pour économiser RAM sur Render gratuit
     model = IsolationForest(
-        n_estimators=100,
+        n_estimators=50,
         contamination=contamination,
         random_state=42,
-        n_jobs=-1
+        n_jobs=1          # n_jobs=1 pour éviter surcharge mémoire
     )
     model.fit(X_scaled)
 
@@ -69,9 +70,9 @@ def score_surface(surface):
 def score_zone(cat):
     """Score basé sur la catégorie géographique."""
     return {
-        '1_Metropole_Top15':  100,
-        '3_Zone_Touristique': 95,
-        '2_Ile_de_France':    90,
+        '1_Metropole_Top15':   100,
+        '3_Zone_Touristique':  95,
+        '2_Ile_de_France':     90,
         '4_Province_Standard': 80
     }.get(cat, 75)
 
@@ -119,15 +120,14 @@ def detect_opportunities(df_reference, contamination=0.02, max_ratio=0.85, zone_
     Returns:
         dict avec statistiques et opportunités
     """
-    # Echantillonnage pour accélérer Isolation Forest
-    # 50 000 lignes suffisent pour détecter les anomalies sur 346K transactions
-    sample_size = min(50000, len(df_reference))
+    # Echantillonnage réduit pour économiser RAM sur Render gratuit
+    sample_size = min(10000, len(df_reference))
     df_sample   = df_reference.sample(sample_size, random_state=42)
 
     # Filtrage des prix aberrants (successions, ventes forcées, erreurs DVF)
     df_sample = df_sample[
         (df_sample['valeur_fonciere'] >= 50000) &
-        (df_sample['prix_m2'] >= 500)
+        (df_sample['prix_m2']         >= 500)
     ]
 
     # 1. Application Isolation Forest
@@ -135,8 +135,8 @@ def detect_opportunities(df_reference, contamination=0.02, max_ratio=0.85, zone_
 
     # 2. Filtrage des candidats
     candidates = df_if[
-        (df_if['anomaly_label'] == -1) &
-        (df_if['ratio_prix_marche'] < max_ratio)
+        (df_if['anomaly_label']      == -1) &
+        (df_if['ratio_prix_marche']  <  max_ratio)
     ].copy()
 
     # Filtre zone si demandé
@@ -180,30 +180,30 @@ def detect_opportunities(df_reference, contamination=0.02, max_ratio=0.85, zone_
     for _, row in top_opps.iterrows():
         ratio = row['ratio_prix_marche']
         opportunities.append({
-            'investment_score':         to_float(row['investment_score']),
-            'decote_pct':               round((1 - to_float(ratio)) * 100, 2),
-            'valeur_fonciere':          to_float(row['valeur_fonciere']),
-            'prix_m2':                  to_float(row['prix_m2']),
-            'marche_prix_m2_median':    to_float(row['marche_prix_m2_median']),
-            'surface_reelle_bati':      to_float(row['surface_reelle_bati']),
+            'investment_score':          to_float(row['investment_score']),
+            'decote_pct':                round((1 - to_float(ratio)) * 100, 2),
+            'valeur_fonciere':           to_float(row['valeur_fonciere']),
+            'prix_m2':                   to_float(row['prix_m2']),
+            'marche_prix_m2_median':     to_float(row['marche_prix_m2_median']),
+            'surface_reelle_bati':       to_float(row['surface_reelle_bati']),
             'nombre_pieces_principales': to_float(row['nombre_pieces_principales']),
-            'code_commune':             str(row['code_commune']),
-            'categorie_geo':            str(row['categorie_geo']),
-            'standing_relative':        str(row['standing_relative']),
-            'latitude':                 to_float(row['latitude']),
-            'longitude':                to_float(row['longitude'])
+            'code_commune':              str(row['code_commune']),
+            'categorie_geo':             str(row['categorie_geo']),
+            'standing_relative':         str(row['standing_relative']),
+            'latitude':                  to_float(row['latitude']),
+            'longitude':                 to_float(row['longitude'])
         })
 
     median_prix = ranked['prix_m2'].median()
     median_surf = ranked['surface_reelle_bati'].median()
 
     return {
-        'success':           True,
-        'nb_opportunities':  int(len(ranked)),
-        'opportunities':     opportunities,
-        'median_decote':     float(median_decote),
-        'median_prix_m2':    to_float(median_prix),
-        'median_surface':    to_float(median_surf),
+        'success':          True,
+        'nb_opportunities': int(len(ranked)),
+        'opportunities':    opportunities,
+        'median_decote':    float(median_decote),
+        'median_prix_m2':   to_float(median_prix),
+        'median_surface':   to_float(median_surf),
         'score_bins': {
             'labels': [f"{int(interval.left)}-{int(interval.right)}" for interval in score_counts.index],
             'counts': [int(x) for x in score_counts.values]
