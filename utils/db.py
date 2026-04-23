@@ -1,17 +1,18 @@
 """
 Connexion et gestion de la base de données MongoDB.
 """
+import os
+import certifi
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from pymongo.errors import ConnectionFailure
-import os
 
 # Configuration
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
-DB_NAME = os.getenv("DB_NAME", "immopro")
+DB_NAME   = os.getenv("DB_NAME", "immopro")
 
 # Client global
 _client = None
-_db = None
+_db     = None
 
 
 def get_db():
@@ -20,7 +21,11 @@ def get_db():
 
     if _db is None:
         try:
-            _client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+            _client = MongoClient(
+                MONGO_URI,
+                serverSelectionTimeoutMS=5000,
+                tlsCAFile=certifi.where()
+            )
             # Vérification de la connexion
             _client.admin.command("ping")
             _db = _client[DB_NAME]
@@ -36,11 +41,11 @@ def get_collections():
     """Retourne toutes les collections utilisées dans l'app."""
     db = get_db()
     return {
-        "properties": db["properties"],       # Données immobilières
-        "communes":   db["communes"],          # Stats par commune
-        "users":      db["users"],             # Comptes utilisateurs
-        "sessions":   db["search_sessions"],   # Historique des recherches
-        "recommendations": db["recommendations"]  # Suggestions personnalisées
+        "properties":      db["properties"],       # Données immobilières
+        "communes":        db["communes"],          # Stats par commune
+        "users":           db["users"],             # Comptes utilisateurs
+        "sessions":        db["search_sessions"],   # Historique des recherches
+        "recommendations": db["recommendations"]    # Suggestions personnalisées
     }
 
 
@@ -50,18 +55,18 @@ def init_indexes():
 
     # Index sur les propriétés
     cols["properties"].create_index([("code_commune", ASCENDING)])
-    cols["properties"].create_index([("prix_m2", ASCENDING)])
+    cols["properties"].create_index([("prix_m2",      ASCENDING)])
     cols["properties"].create_index([("cluster_kmeans", ASCENDING)])
 
     # Index sur les communes
     cols["communes"].create_index([("code_commune", ASCENDING)], unique=True)
 
     # Index sur les utilisateurs
-    cols["users"].create_index([("email", ASCENDING)], unique=True)
+    cols["users"].create_index([("email",    ASCENDING)], unique=True)
     cols["users"].create_index([("username", ASCENDING)], unique=True)
 
     # Index sur les sessions de recherche
-    cols["sessions"].create_index([("user_id", ASCENDING)])
+    cols["sessions"].create_index([("user_id",    ASCENDING)])
     cols["sessions"].create_index([("created_at", DESCENDING)])
 
     print("[MongoDB] Index créés avec succès")
@@ -73,5 +78,5 @@ def close_db():
     if _client:
         _client.close()
         _client = None
-        _db = None
+        _db     = None
         print("[MongoDB] Connexion fermée")
