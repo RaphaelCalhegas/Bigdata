@@ -1,96 +1,107 @@
 {% extends "base.html" %}
 
-{% block title %}ImmoInsight Pro - Analyse Immobilière IA{% endblock %}
+{% block title %}ImmoPRO - Tableau de bord{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
-    <!-- Hero Section -->
-    <div class="text-center mb-20 scroll-reveal">
-        <div
-            class="inline-block p-6 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-8 hover:scale-110 transition-transform duration-300">
+
+    <!-- Bienvenue -->
+    <div class="text-center mb-16 scroll-reveal">
+        <div class="inline-block p-6 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-8 hover:scale-110 transition-transform duration-300">
             <i class="fas fa-home text-8xl text-emerald-600"></i>
         </div>
-        <h1 class="text-7xl font-extrabold mb-6 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent gradient-animate"
-            style="background-size: 200% auto;">
-            ImmoInsight Pro
+        <h1 class="text-6xl font-extrabold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent gradient-animate" style="background-size: 200% auto;">
+            Bonjour, {{ current_user.username }} 
         </h1>
-        <p class="text-2xl text-gray-600 mb-4">Plateforme d'analyse immobilière propulsée par l'Intelligence
-            Artificielle</p>
-        <p class="text-lg text-gray-500 max-w-3xl mx-auto">
-            Exploitez la puissance du Machine Learning pour analyser 302,000+ transactions immobilières
-            et prendre des décisions éclairées basées sur les données DVF 2024
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto">
+            Que souhaitez-vous analyser aujourd'hui ?
         </p>
     </div>
 
     <!-- Features Grid -->
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+
         <a href="/estimation" class="card hover-lift glow group">
             <div class="card-body text-center">
-                <div
-                    class="inline-block p-6 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                <div class="inline-block p-5 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                     <i class="fas fa-calculator text-5xl text-emerald-600"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-gray-800">Estimation IA</h3>
-                <p class="text-gray-600">Estimez le prix de n'importe quel bien en quelques secondes grâce au K-Means
-                </p>
-                <div
-                    class="mt-4 inline-flex items-center text-emerald-600 font-semibold group-hover:translate-x-2 transition-transform">
-                    Estimer un bien
-                    <i class="fas fa-arrow-right ml-2"></i>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Estimation IA</h3>
+                <p class="text-gray-500 text-sm">Estimez le prix de n'importe quel bien en quelques secondes grâce au K-Means</p>
+                <div class="mt-4 inline-flex items-center text-emerald-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Estimer un bien <i class="fas fa-arrow-right ml-2"></i>
                 </div>
             </div>
         </a>
 
         <a href="/analyse-marche" class="card hover-lift glow group">
             <div class="card-body text-center">
-                <div
-                    class="inline-block p-6 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                <div class="inline-block p-5 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                     <i class="fas fa-chart-line text-5xl text-teal-600"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-gray-800">Analyse de Marché</h3>
-                <p class="text-gray-600">Statistiques détaillées par département avec insights et tendances</p>
-                <div
-                    class="mt-4 inline-flex items-center text-teal-600 font-semibold group-hover:translate-x-2 transition-transform">
-                    Analyser le marché
-                    <i class="fas fa-arrow-right ml-2"></i>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Analyse de Marché</h3>
+                <p class="text-gray-500 text-sm">Statistiques détaillées par département avec insights et tendances</p>
+                <div class="mt-4 inline-flex items-center text-teal-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Analyser le marché <i class="fas fa-arrow-right ml-2"></i>
                 </div>
             </div>
         </a>
 
         <a href="/cartographie" class="card hover-lift glow group">
             <div class="card-body text-center">
-                <div
-                    class="inline-block p-6 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                <div class="inline-block p-5 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                     <i class="fas fa-map-marked-alt text-5xl text-emerald-600"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-gray-800">Cartographie</h3>
-                <p class="text-gray-600">Visualisez les transactions et clusters sur une carte interactive</p>
-                <div
-                    class="mt-4 inline-flex items-center text-emerald-600 font-semibold group-hover:translate-x-2 transition-transform">
-                    Voir la carte
-                    <i class="fas fa-arrow-right ml-2"></i>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Cartographie</h3>
+                <p class="text-gray-500 text-sm">Visualisez les transactions et clusters sur une carte interactive</p>
+                <div class="mt-4 inline-flex items-center text-emerald-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Voir la carte <i class="fas fa-arrow-right ml-2"></i>
                 </div>
             </div>
         </a>
 
         <a href="/opportunites" class="card hover-lift glow group">
             <div class="card-body text-center">
-                <div
-                    class="inline-block p-6 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                <div class="inline-block p-5 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                     <i class="fas fa-gem text-5xl text-teal-600"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-gray-800">Opportunités IA</h3>
-                <p class="text-gray-600">Détectez les meilleures affaires grâce à l'Isolation Forest</p>
-                <div
-                    class="mt-4 inline-flex items-center text-teal-600 font-semibold group-hover:translate-x-2 transition-transform">
-                    Trouver des opportunités
-                    <i class="fas fa-arrow-right ml-2"></i>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Opportunités IA</h3>
+                <p class="text-gray-500 text-sm">Détectez les meilleures affaires grâce à l'Isolation Forest</p>
+                <div class="mt-4 inline-flex items-center text-teal-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Trouver des opportunités <i class="fas fa-arrow-right ml-2"></i>
                 </div>
             </div>
         </a>
+
+        <a href="/similaires" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-search text-5xl text-rose-500"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Biens Comparables</h3>
+                <p class="text-gray-500 text-sm">Trouvez les transactions les plus proches de votre bien</p>
+                <div class="mt-4 inline-flex items-center text-rose-500 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Chercher des comparables <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="/clusters" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-layer-group text-5xl text-purple-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Segments de Marché</h3>
+                <p class="text-gray-500 text-sm">Explorez les 6 segments identifiés par l'algorithme K-Means</p>
+                <div class="mt-4 inline-flex items-center text-purple-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Voir les segments <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
     </div>
 
-    <!-- Stats Section -->
+    <!-- Stats -->
     <div class="card mb-16 scroll-reveal" style="animation-delay: 0.2s;">
         <div class="card-body">
             <div class="grid md:grid-cols-4 gap-8 text-center">
@@ -99,7 +110,7 @@
                     <div class="stat-label">Transactions analysées</div>
                 </div>
                 <div>
-                    <div class="stat-value mb-2">6,555</div>
+                    <div class="stat-value mb-2">13K+</div>
                     <div class="stat-label">Communes couvertes</div>
                 </div>
                 <div>
@@ -114,110 +125,26 @@
         </div>
     </div>
 
-    <!-- Technologies Section -->
-    <div class="grid md:grid-cols-2 gap-8 mb-16">
-        <div class="card hover-lift scroll-reveal" style="animation-delay: 0.3s;">
-            <div class="card-header">
-                <h3 class="text-2xl font-bold flex items-center space-x-3">
-                    <i class="fas fa-robot text-3xl"></i>
-                    <span>Intelligence Artificielle</span>
-                </h3>
-            </div>
-            <div class="card-body">
-                <ul class="space-y-4">
-                    <li class="flex items-start space-x-3">
-                        <i class="fas fa-check-circle text-emerald-500 text-xl mt-1"></i>
-                        <div>
-                            <strong class="text-gray-800">K-Means Clustering</strong>
-                            <p class="text-gray-600">Segmentation intelligente du marché en 6 clusters homogènes</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start space-x-3">
-                        <i class="fas fa-check-circle text-emerald-500 text-xl mt-1"></i>
-                        <div>
-                            <strong class="text-gray-800">Isolation Forest</strong>
-                            <p class="text-gray-600">Détection d'anomalies pour identifier les opportunités
-                                d'investissement</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start space-x-3">
-                        <i class="fas fa-check-circle text-emerald-500 text-xl mt-1"></i>
-                        <div>
-                            <strong class="text-gray-800">Standardisation</strong>
-                            <p class="text-gray-600">Normalisation des données pour des prédictions précises</p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card hover-lift scroll-reveal" style="animation-delay: 0.4s;">
-            <div class="card-header">
-                <h3 class="text-2xl font-bold flex items-center space-x-3">
-                    <i class="fas fa-database text-3xl"></i>
-                    <span>Données DVF 2024</span>
-                </h3>
-            </div>
-            <div class="card-body">
-                <ul class="space-y-4">
-                    <li class="flex items-start space-x-3">
-                        <i class="fas fa-check-circle text-teal-500 text-xl mt-1"></i>
-                        <div>
-                            <strong class="text-gray-800">Source Officielle</strong>
-                            <p class="text-gray-600">Données gouvernementales certifiées et à jour</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start space-x-3">
-                        <i class="fas fa-check-circle text-teal-500 text-xl mt-1"></i>
-                        <div>
-                            <strong class="text-gray-800">Couverture Nationale</strong>
-                            <p class="text-gray-600">Toute la France métropolitaine et DOM-TOM</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start space-x-3">
-                        <i class="fas fa-check-circle text-teal-500 text-xl mt-1"></i>
-                        <div>
-                            <strong class="text-gray-800">Mise à Jour Continue</strong>
-                            <p class="text-gray-600">Base enrichie régulièrement avec les nouvelles transactions</p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- CTA Section -->
-    <div class="card bg-gradient-to-br from-emerald-600 to-teal-600 text-white text-center scroll-reveal"
-        style="animation-delay: 0.5s;">
-        <div class="card-body py-16">
-            <h2 class="text-4xl font-bold mb-6">Prêt à analyser le marché immobilier ?</h2>
-            <p class="text-xl mb-8 text-emerald-50">Commencez dès maintenant avec notre outil d'estimation gratuit</p>
-            <a href="/estimation"
-                class="btn bg-white text-emerald-600 hover:bg-emerald-50 text-lg px-12 py-4 inline-flex items-center space-x-3 shadow-2xl">
-                <i class="fas fa-rocket text-2xl"></i>
-                <span class="font-bold">Lancer une estimation</span>
+    <!-- CTA profil -->
+    <div class="card bg-gradient-to-br from-emerald-600 to-teal-600 text-white text-center scroll-reveal" style="animation-delay: 0.3s;">
+        <div class="card-body py-12">
+            <h2 class="text-3xl font-bold mb-4">Consultez vos recommandations personnalisées</h2>
+            <p class="text-lg mb-8 text-emerald-50">Votre historique de recherche génère des suggestions adaptées à votre profil</p>
+            <a href="/profile" class="btn bg-white text-emerald-600 hover:bg-emerald-50 text-lg px-10 py-4 inline-flex items-center space-x-3 shadow-2xl">
+                <i class="fas fa-user-circle text-2xl"></i>
+                <span class="font-bold">Voir mon profil</span>
             </a>
         </div>
     </div>
+
 </div>
 
 <style>
     @keyframes gradientShift {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
-
-    .gradient-animate {
-        animation: gradientShift 3s ease infinite;
-    }
+    .gradient-animate { animation: gradientShift 3s ease infinite; }
 </style>
 {% endblock %}

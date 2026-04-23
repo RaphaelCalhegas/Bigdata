@@ -4,6 +4,7 @@ Application Flask de pointe exploitant le Machine Learning pour l'analyse approf
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-green)
+![MongoDB](https://img.shields.io/badge/MongoDB-8.2-green)
 ![scikit--learn](https://img.shields.io/badge/scikit--learn-1.3.0-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
@@ -16,9 +17,10 @@ Application Flask de pointe exploitant le Machine Learning pour l'analyse approf
 3. [Pipeline de traitement des données](#-pipeline-de-traitement-des-données)
 4. [Machine Learning et Clustering](#-machine-learning-et-clustering)
 5. [Fonctionnalités de l'application](#-fonctionnalités-de-lapplication)
-6. [Installation](#-installation)
-7. [Utilisation](#-utilisation)
-8. [Technologies utilisées](#-technologies-utilisées)
+6. [Authentification et recommandations](#-authentification-et-recommandations)
+7. [Installation](#-installation)
+8. [Utilisation](#-utilisation)
+9. [Technologies utilisées](#-technologies-utilisées)
 
 ---
 
@@ -31,8 +33,10 @@ Application Flask de pointe exploitant le Machine Learning pour l'analyse approf
 - 🗺️ **Cartographie interactive** des transactions
 - 🔍 **Détection d'opportunités d'investissement** via Isolation Forest
 - 📈 **Recherche de biens similaires** avec scoring de similarité
+- 👤 **Authentification utilisateur** avec historique et recommandations personnalisées
+- 🗄️ **Base de données MongoDB** pour une architecture Big Data scalable
 
-L'application s'appuie sur des algorithmes de Machine Learning avancés (K-Means, HDBSCAN, Isolation Forest) pour segmenter le marché et identifier les patterns de prix.
+L'application s'appuie sur des algorithmes de Machine Learning avancés (K-Means, HDBSCAN, Isolation Forest) pour segmenter le marché et identifier les patterns de prix. Elle intègre désormais une couche Big Data avec MongoDB et un moteur de recommandations personnalisées.
 
 ---
 
@@ -57,7 +61,10 @@ clustering_immo_app/
 │   ├── data_loader.py       # DataManager (chargement et recherche)
 │   ├── clustering.py        # Fonctions d'analyse des clusters
 │   ├── predictor.py         # PriceEstimator (estimation de prix)
-│   └── opportunities.py     # Isolation Forest (détection anomalies)
+│   ├── opportunities.py     # Isolation Forest (détection anomalies)
+│   ├── db.py                # Connexion et collections MongoDB
+│   ├── auth.py              # Authentification (inscription/connexion)
+│   └── recommendations.py  # Moteur de recommandations personnalisées
 │
 ├── templates/               # Templates HTML (Jinja2)
 │   ├── base.html            # Layout de base (navigation)
@@ -67,7 +74,10 @@ clustering_immo_app/
 │   ├── cartographie.html    # Onglet 3 : Carte interactive
 │   ├── similaires.html      # Onglet 4 : Biens similaires
 │   ├── opportunites.html    # Onglet 5 : Détection d'opportunités
-│   └── clusters.html        # Profils des 6 clusters
+│   ├── clusters.html        # Profils des 6 clusters
+│   ├── login.html           # Page de connexion
+│   ├── register.html        # Page d'inscription
+│   └── profile.html         # Profil utilisateur + recommandations
 │
 └── static/                  # Assets frontend
     ├── css/
@@ -424,12 +434,59 @@ class PriceEstimator:
 
 ---
 
+---
+
+## 👤 Authentification et recommandations
+
+### Système utilisateur
+
+L'application intègre un système complet de gestion des utilisateurs basé sur **Flask-Login** et **MongoDB** :
+
+- **Inscription** (`/register`) : Création de compte avec validation et hashage du mot de passe (bcrypt)
+- **Connexion** (`/login`) : Authentification sécurisée avec gestion de session
+- **Profil** (`/profile`) : Tableau de bord personnel avec historique et recommandations
+
+### Historique des recherches
+
+Chaque recherche effectuée par un utilisateur connecté est automatiquement sauvegardée en MongoDB (collection `search_sessions`) avec le type, les paramètres et la date.
+
+### Moteur de recommandations
+
+Le moteur analyse l'historique de l'utilisateur pour construire un profil implicite :
+- Zones et départements les plus recherchés
+- Budget moyen estimé
+- Surface typique recherchée
+
+Il génère ensuite des suggestions de communes cohérentes avec ces préférences, actualisables depuis la page profil.
+
+### Collections MongoDB
+
+| Collection | Contenu |
+|------------|---------|
+| `properties` | Données immobilières DVF |
+| `communes` | Statistiques agrégées par commune |
+| `users` | Comptes utilisateurs |
+| `search_sessions` | Historique des recherches |
+| `recommendations` | Suggestions personnalisées |
+
+### Nouvelles routes
+
+| Endpoint | Méthode | Auth | Description |
+|----------|---------|------|-------------|
+| `/register` | GET/POST | Non | Inscription |
+| `/login` | GET/POST | Non | Connexion |
+| `/logout` | GET | Oui | Déconnexion |
+| `/profile` | GET | Oui | Profil utilisateur |
+| `/api/profile/preferences` | POST | Oui | Mise à jour préférences |
+| `/api/recommendations/refresh` | POST | Oui | Actualisation recommandations |
+
 ## 💻 Installation
 
 ### Prérequis
 
 - **Python 3.10+**
-- **uv** (gestionnaire de paquets moderne) ou **pip**
+- **MongoDB 8.2+** (service démarré : `net start MongoDB`)
+- **pip** ou **uv** (gestionnaire de paquets)
 
 ### Étapes
 
@@ -441,9 +498,7 @@ class PriceEstimator:
 
 2. **Installer les dépendances** :
    ```bash
-   uv pip install .
-   # ou avec pip
-   pip install -e .
+   pip install flask pandas numpy scikit-learn matplotlib seaborn plotly hdbscan scipy requests pymongo flask-login flask-bcrypt
    ```
 
 3. **Préparer les données et modèles** (obligatoire avant le premier lancement) :
@@ -511,6 +566,10 @@ uv run python app.py
 ### Backend
 
 - **Flask 3.0.0** : Framework web léger
+- **Flask-Login** : Gestion des sessions utilisateurs
+- **Flask-Bcrypt** : Hashage sécurisé des mots de passe
+- **MongoDB 8.2** : Base de données NoSQL orientée documents
+- **PyMongo** : Driver Python pour MongoDB
 - **pandas 2.0+** : Manipulation de données
 - **NumPy 1.24+** : Calculs numériques
 - **scikit-learn 1.3+** : Machine Learning (K-Means, Isolation Forest, StandardScaler)
@@ -563,7 +622,7 @@ uv run python app.py
 ## 📝 Améliorations futures
 
 - [ ] **API REST complète** : Documentation OpenAPI/Swagger
-- [ ] **Authentification** : Comptes utilisateurs + favoris
+- [x] **Authentification** : Comptes utilisateurs + historique des recherches
 - [ ] **Modèles avancés** : XGBoost/LightGBM pour estimation de prix
 - [ ] **Prédictions temporelles** : Forecasting des prix (ARIMA, Prophet)
 - [ ] **Export PDF** : Génération de rapports d'analyse
