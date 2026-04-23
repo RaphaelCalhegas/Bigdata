@@ -1,6 +1,5 @@
 # gunicorn.conf.py
-timeout         = 120
-workers         = 1
-worker_class    = "gevent"
-worker_connections = 30
-bind            = "0.0.0.0:10000"
+timeout      = 120
+workers      = 1
+bind         = "0.0.0.0:10000"
+worker_class = "sync"
