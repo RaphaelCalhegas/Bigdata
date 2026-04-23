@@ -1,12 +1,15 @@
-# 🏘️ ImmoInsight Pro - Plateforme d'Analyse Immobilière par Intelligence Artificielle 
+# 🏘️ ImmoPRO - Plateforme d'Analyse Immobilière par Intelligence Artificielle
 
-Application Flask de pointe exploitant le Machine Learning pour l'analyse approfondie du marché immobilier français à partir des données **DVF 2024** (Demande de Valeurs Foncières).
+Application Flask de pointe exploitant le Machine Learning pour l'analyse approfondie du marché immobilier français à partir des données **DVF 2025** (Demande de Valeurs Foncières).
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Flask](https://img.shields.io/badge/Flask-3.0.0-green)
-![MongoDB](https://img.shields.io/badge/MongoDB-8.2-green)
-![scikit--learn](https://img.shields.io/badge/scikit--learn-1.3.0-orange)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![Flask](https://img.shields.io/badge/Flask-3.1.3-green)
+![MongoDB](https://img.shields.io/badge/MongoDB_Atlas-cloud-green)
+![scikit--learn](https://img.shields.io/badge/scikit--learn-1.7.2-orange)
+![Render](https://img.shields.io/badge/Deployed-Render-purple)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+
+🌐 **Application en ligne** : [https://bigdata-ggqx.onrender.com](https://bigdata-ggqx.onrender.com)
 
 ---
 
@@ -14,462 +17,280 @@ Application Flask de pointe exploitant le Machine Learning pour l'analyse approf
 
 1. [Vue d'ensemble](#-vue-densemble)
 2. [Architecture du projet](#-architecture-du-projet)
-3. [Pipeline de traitement des données](#-pipeline-de-traitement-des-données)
-4. [Machine Learning et Clustering](#-machine-learning-et-clustering)
-5. [Fonctionnalités de l'application](#-fonctionnalités-de-lapplication)
-6. [Authentification et recommandations](#-authentification-et-recommandations)
-7. [Installation](#-installation)
-8. [Utilisation](#-utilisation)
-9. [Technologies utilisées](#-technologies-utilisées)
+3. [Base de données MongoDB Atlas](#-base-de-données-mongodb-atlas)
+4. [Pipeline de traitement des données](#-pipeline-de-traitement-des-données)
+5. [Machine Learning et Clustering](#-machine-learning-et-clustering)
+6. [Fonctionnalités de l'application](#-fonctionnalités-de-lapplication)
+7. [Authentification et recommandations](#-authentification-et-recommandations)
+8. [API Geo.gouv.fr](#-api-geogouv)
+9. [Installation locale](#-installation-locale)
+10. [Déploiement production](#-déploiement-production)
+11. [Technologies utilisées](#-technologies-utilisées)
 
 ---
 
 ## 🎯 Vue d'ensemble
 
-**ImmoInsight Pro** est une plateforme web d'analyse immobilière qui exploite **302,000+ transactions immobilières** de l'année 2024 pour fournir :
+**ImmoPRO** est une plateforme web d'analyse immobilière qui exploite **346 639 transactions immobilières** de l'année 2025 pour fournir :
 
 - ✅ **Estimations de prix** basées sur l'analyse par clustering K-Means
-- 📊 **Analyses de marché** par département et commune
-- 🗺️ **Cartographie interactive** des transactions
+- 📊 **Analyses de marché** par département avec 96 départements couverts
+- 🗺️ **Cartographie interactive** des transactions via Plotly
 - 🔍 **Détection d'opportunités d'investissement** via Isolation Forest
-- 📈 **Recherche de biens similaires** avec scoring de similarité
+- 📈 **Recherche de biens comparables** avec scoring de similarité
 - 👤 **Authentification utilisateur** avec historique et recommandations personnalisées
-- 🗄️ **Base de données MongoDB** pour une architecture Big Data scalable
-
-L'application s'appuie sur des algorithmes de Machine Learning avancés (K-Means, HDBSCAN, Isolation Forest) pour segmenter le marché et identifier les patterns de prix. Elle intègre désormais une couche Big Data avec MongoDB et un moteur de recommandations personnalisées.
+- 🗄️ **Base de données MongoDB Atlas** (cloud) pour une architecture Big Data scalable
+- 🌍 **Intégration API Geo.gouv.fr** pour la résolution des codes communes en noms réels
 
 ---
 
 ## 🏗️ Architecture du projet
 
 ```
-clustering_immo_app/
+Bigdata-main/
 │
-├── app.py                    # Application Flask principale (routes et API)
-├── prepare_models.py         # Pipeline ETL et entraînement des modèles ML
-├── analyze_clusters.py       # Script d'analyse des clusters K-Means
-├── pyproject.toml           # Configuration des dépendances (uv/pip)
+├── app.py                      # Application Flask principale (routes et API)
+├── prepare_models.py           # Pipeline ETL et entraînement des modèles ML
+├── migrate_reference_data.py   # Script de migration des données vers MongoDB Atlas
+├── analyze_clusters.py         # Script d'analyse des clusters K-Means
+├── pyproject.toml              # Configuration des dépendances
+├── requirements.txt            # Dépendances Python pour Render
+├── .python-version             # Version Python forcée (3.11.9) pour Render
+├── gunicorn.conf.py            # Configuration Gunicorn (timeout, workers)
 │
-├── models/                  # Modèles ML et données sérialisées (générés)
-│   ├── df_reference.pkl     # Dataset enrichi avec clusters (302K lignes)
-│   ├── df_communes.pkl      # Statistiques agrégées par commune
-│   ├── kmeans_model.pkl     # Modèle K-Means (6 clusters)
-│   └── scaler.pkl           # StandardScaler pour normalisation
+├── models/                     # Modèles ML sérialisés (non régénérés en prod)
+│   ├── kmeans_model.pkl        # Modèle K-Means (6 clusters)
+│   └── scaler.pkl              # StandardScaler pour normalisation
 │
-├── utils/                   # Modules utilitaires
-│   ├── __init__.py          # Exports des classes principales
-│   ├── data_loader.py       # DataManager (chargement et recherche)
-│   ├── clustering.py        # Fonctions d'analyse des clusters
-│   ├── predictor.py         # PriceEstimator (estimation de prix)
-│   ├── opportunities.py     # Isolation Forest (détection anomalies)
-│   ├── db.py                # Connexion et collections MongoDB
-│   ├── auth.py              # Authentification (inscription/connexion)
-│   └── recommendations.py  # Moteur de recommandations personnalisées
+├── utils/                      # Modules utilitaires
+│   ├── __init__.py             # Exports des classes principales
+│   ├── data_loader.py          # DataManager (connexion MongoDB + requêtes)
+│   ├── clustering.py           # Fonctions d'analyse des clusters
+│   ├── predictor.py            # PriceEstimator (estimation de prix)
+│   ├── opportunities.py        # Isolation Forest (détection anomalies)
+│   ├── db.py                   # Connexion MongoDB Atlas (certifi + TLS)
+│   ├── auth.py                 # Authentification (inscription/connexion)
+│   └── recommendations.py     # Moteur de recommandations personnalisées
 │
-├── templates/               # Templates HTML (Jinja2)
-│   ├── base.html            # Layout de base (navigation)
-│   ├── index.html           # Page d'accueil
-│   ├── estimation.html      # Onglet 1 : Estimation de bien
-│   ├── analyse_marche.html  # Onglet 2 : Analyse de marché
-│   ├── cartographie.html    # Onglet 3 : Carte interactive
-│   ├── similaires.html      # Onglet 4 : Biens similaires
-│   ├── opportunites.html    # Onglet 5 : Détection d'opportunités
-│   ├── clusters.html        # Profils des 6 clusters
-│   ├── login.html           # Page de connexion
-│   ├── register.html        # Page d'inscription
-│   └── profile.html         # Profil utilisateur + recommandations
+├── templates/                  # Templates HTML (Jinja2)
+│   ├── base.html               # Layout de base (navigation + footer)
+│   ├── landing.html            # Page d'accueil publique
+│   ├── index.html              # Dashboard utilisateur connecté
+│   ├── estimation.html         # Onglet 1 : Estimation de bien
+│   ├── analyse_marche.html     # Onglet 2 : Analyse de marché (96 depts)
+│   ├── cartographie.html       # Onglet 3 : Carte interactive Plotly
+│   ├── similaires.html         # Onglet 4 : Biens comparables
+│   ├── opportunites.html       # Onglet 5 : Détection d'opportunités
+│   ├── clusters.html           # Profils des 6 segments de marché
+│   ├── login.html              # Page de connexion
+│   ├── register.html           # Page d'inscription
+│   └── profile.html            # Profil utilisateur + recommandations
 │
-└── static/                  # Assets frontend
+└── static/                     # Assets frontend
     ├── css/
-    │   └── style.css        # Styles Tailwind CSS personnalisés
-    └── js/                  # Logique JavaScript par onglet
-        ├── estimation.js
-        ├── analyse_marche.js
-        ├── cartographie.js
-        ├── similaires.js
-        └── opportunites.js
+    │   └── style.css           # Styles Tailwind CSS personnalisés
+    └── js/                     # Logique JavaScript par onglet
+        ├── estimation.js       # Autocomplétion code postal + estimation
+        ├── analyse_marche.js   # Sélecteur 96 départements + pagination Top 20
+        ├── cartographie.js     # Carte Plotly (5 000 points)
+        ├── similaires.js       # Recherche comparables + tooltips + pagination
+        └── opportunites.js     # Isolation Forest + filtres + modale + zones JS
+```
+
+---
+
+## 🗄️ Base de données MongoDB Atlas
+
+ImmoPRO utilise **MongoDB Atlas** (cloud) comme base de données principale. Les données ne sont plus stockées en fichiers `.pkl` locaux — tout est requêté en temps réel depuis Atlas.
+
+### Collections
+
+| Collection | Documents | Contenu |
+|------------|-----------|---------|
+| `properties` | 346 639 | Transactions DVF 2025 enrichies (prix, surface, coords, cluster, standing...) |
+| `communes` | 6 767 | Statistiques agrégées par commune (prix médian, nb transactions...) |
+| `users` | Variable | Comptes utilisateurs (email, hash mot de passe) |
+| `search_sessions` | Variable | Historique des recherches par utilisateur |
+| `recommendations` | Variable | Suggestions personnalisées générées |
+
+### Connexion sécurisée
+
+```python
+# utils/db.py
+import certifi
+from pymongo import MongoClient
+
+_client = MongoClient(
+    MONGO_URI,                        # Variable d'environnement
+    serverSelectionTimeoutMS=5000,
+    tlsCAFile=certifi.where()         # Certificats SSL pour Atlas
+)
+```
+
+### Optimisation mémoire (Render gratuit)
+
+Pour la route `/api/opportunities`, l'échantillonnage est fait **directement dans MongoDB** via `$sample` pour éviter de charger 346K lignes en RAM :
+
+```python
+docs = list(data_manager.db["properties"].aggregate([
+    {"$match": {"valeur_fonciere": {"$gte": 50000}, "prix_m2": {"$gte": 500}}},
+    {"$sample": {"size": 15000}},
+    {"$project": {"_id": 0}}
+]))
 ```
 
 ---
 
 ## 📦 Pipeline de traitement des données
 
-Le script `prepare_models.py` exécute un **pipeline ETL complet** avant le lancement de l'application.
+Le script `prepare_models.py` exécute un **pipeline ETL complet** pour préparer les données initiales.
 
-### 1️⃣ Extraction des données (ETL)
+### 1️⃣ Extraction des données
 
-**Source** : [geo-dvf (data.gouv.fr)](https://files.data.gouv.fr/geo-dvf/latest/csv/2024/full.csv.gz)
+**Source** : [geo-dvf (data.gouv.fr)](https://files.data.gouv.fr/geo-dvf/latest/csv/2025/full.csv.gz)
 
-```python
-def extract_apartment_sales(year: int = 2024) -> pd.DataFrame
-```
+**Filtres appliqués** :
+- Nature mutation = `Vente`
+- Type local = `Appartement`
+- France métropolitaine uniquement
+- Coordonnées GPS valides
+- Surface terrain = `0`
 
-**Processus** :
-- ⬇️ **Téléchargement** du fichier DVF 2024 complet (6M+ lignes)
-- 🔍 **Filtrage métier** :
-  - Nature mutation = `Vente`
-  - Type local = `Appartement`
-  - Localisation = France métropolitaine (exclusion DOM-TOM)
-  - Coordonnées GPS valides (`latitude` et `longitude` non nulles)
-  - Surface terrain = `0` (pour isoler les appartements sans terrain)
-- 🧹 **Dédoublonnage** : Suppression des duplicatas sur `id_mutation` + champs clés
-- ∑ **Agrégation** : Regroupement par mutation (certaines mutations = plusieurs lignes)
-- 🎯 **Projection** : Sélection de 7 colonnes cibles :
-  - `id_mutation`, `valeur_fonciere`, `surface_reelle_bati`, `nombre_pieces_principales`, `code_commune`, `latitude`, `longitude`
+**Résultat brut** : ~450 000 ventes d'appartements
 
-**Résultat** : ~450,000 ventes d'appartements
+### 2️⃣ Nettoyage et outliers
 
----
+Filtrage par quantiles P1-P99 sur `surface_reelle_bati`, `valeur_fonciere` et `nombre_pieces_principales`.
 
-### 2️⃣ Nettoyage des valeurs aberrantes
-
-```python
-def remove_statistical_outliers(df: pd.DataFrame) -> pd.DataFrame
-```
-
-**Méthode** : Filtrage par **quantiles** pour supprimer les valeurs extrêmes :
-- `surface_reelle_bati` : conservation du P1-P99 (1er au 99e percentile)
-- `valeur_fonciere` : conservation du P1-P99
-- `nombre_pieces_principales` : conservation du P1-P99.9
-
-**Impact** : ~148,000 lignes supprimées (~33% des données brutes) pour garantir la qualité
-
-**Dataset final** : **~302,000 transactions** propres et exploitables
-
----
+**Dataset final** : **346 639 transactions** propres
 
 ### 3️⃣ Feature Engineering
 
-```python
-def add_features(df: pd.DataFrame) -> pd.DataFrame
-```
+| Variable | Description |
+|----------|-------------|
+| `prix_m2` | `valeur_fonciere / surface_reelle_bati` |
+| `marche_prix_m2_median` | Prix médian au m² par commune |
+| `categorie_geo` | 4 zones géographiques (Métropole, IDF, Touristique, Province) |
+| `standing_relative` | 5 niveaux de standing (ratio prix/marché local) |
+| `cluster_kmeans` | Segment K-Means (0-5) |
 
-**Nouvelles variables créées** :
+### 4️⃣ Standing relatif
 
-#### 📐 Variables numériques
-
-- **`prix_m2`** : `valeur_fonciere / surface_reelle_bati`
-- **`marche_prix_m2_median`** : Prix médian au m² par commune (contexte local)
-
-#### 🗺️ Catégorisation géographique
-
-Variable **`categorie_geo`** (4 segments) :
-
-| Catégorie | Description | Exemples |
-|-----------|-------------|----------|
-| `1_Metropole_Top15` | Paris + 14 grandes métropoles (Lyon, Marseille, Bordeaux...) | Paris 75001-75020, Lyon 69001-69009, Marseille 13001-13016 |
-| `2_Ile_de_France` | Départements IDF hors Paris | 92 (Hauts-de-Seine), 93, 94, 77, 78, 91, 95 |
-| `3_Zone_Touristique` | Départements attractifs/tension | 06 (Alpes-Maritimes), 33 (Gironde), 83 (Var), 74, 69, 44, 34 |
-| `4_Province_Standard` | Reste du territoire | Tous les autres départements |
-
-#### ⭐ Standing relatif
-
-Variable **`standing_relative`** (5 niveaux) basée sur le ratio `prix_m2 / marche_prix_m2_median` :
-
-| Standing | Ratio | Signification |
-|----------|-------|---------------|
-| `1_Decote_Travaux` | < 0.70 | -30% sous le marché local (potentiel travaux) |
+| Standing | Ratio | Description |
+|----------|-------|-------------|
+| `1_Decote_Travaux` | < 0.70 | -30% sous le marché |
 | `2_Bonne_Affaire` | 0.70 - 0.90 | -10 à -30% sous le marché |
-| `3_Standard_Marche` | 0.90 - 1.15 | ±15% du marché (prix normal) |
-| `4_Premium` | 1.15 - 1.40 | +15 à +40% au-dessus du marché |
-| `5_Prestige_Exception` | > 1.40 | +40% et plus (luxe, vue exceptionnelle, etc.) |
-
----
-
-### 4️⃣ Entraînement des modèles Machine Learning
-
-```python
-def train_models(df: pd.DataFrame, models_dir: Path)
-```
-
-#### A. Préparation des données
-
-**Features sélectionnées** (5 dimensions) :
-- `surface_reelle_bati` : Taille du bien
-- `nombre_pieces_principales` : Typologie (T1, T2, T3...)
-- `latitude`, `longitude` : Localisation géographique
-- `prix_m2` : Niveau de prix
-
-**Échantillonnage** : 50,000 biens pour l'entraînement (optimisation des performances)
-
-**Normalisation** : `StandardScaler` (moyenne=0, écart-type=1) pour harmoniser les échelles
-
-#### B. Clustering K-Means
-
-**Algorithme** : K-Means avec **k=6 clusters** (choix optimal après analyse)
-
-**Paramètres** :
-- `n_clusters=6` : 6 segments de marché distincts
-- `random_state=42` : Reproductibilité
-- `n_init='auto'` : Optimisation automatique
-
-**Application** : Prédiction sur l'intégralité des 302,000 biens → Colonne `cluster_kmeans`
-
-#### C. Statistiques par commune
-
-Agrégation des **métriques clés par commune** :
-- Prix médian/moyen au m²
-- Surface moyenne
-- Prix moyen
-- Catégorie géographique dominante
-- Nombre de transactions
-
-**Résultat** : ~13,000 communes référencées
-
-#### D. Sauvegarde
-
-4 fichiers Pickle générés dans `models/` :
-- `df_reference.pkl` : Dataset complet avec clusters
-- `kmeans_model.pkl` : Modèle K-Means entraîné
-- `scaler.pkl` : Scaler pour nouvelles prédictions
-- `df_communes.pkl` : Statistiques communales
+| `3_Standard_Marche` | 0.90 - 1.15 | ±15% du marché |
+| `4_Premium` | 1.15 - 1.40 | +15 à +40% au-dessus |
+| `5_Prestige_Exception` | > 1.40 | +40% et plus |
 
 ---
 
 ## 🤖 Machine Learning et Clustering
 
-### Les 6 Clusters K-Means (Segments de marché)
+### K-Means — 6 segments de marché
 
-Analyse des **302,016 transactions** DVF 2024 :
+| Cluster | Nom | Caractéristiques | % marché |
+|---------|-----|-----------------|---------|
+| **0** | Petits Apparts Province Sud | 37m², 3 700€/m², 134K€ | 22.1% |
+| **1** | Apparts Premium Paris/IDF | 43m², 9 900€/m², 425K€ | 9.5% |
+| **2** | Apparts Familiaux IDF Périphérie | 70m², 3 100€/m², 218K€ | 19.5% |
+| **3** | Apparts Standard Province | 70m², 2 900€/m², 202K€ | 21.8% |
+| **4** | Grandes Surfaces Familiales | 111m², 2 960€/m², 329K€ | 7.4% |
+| **5** | Studios/T2 Province Dynamique | 38m², 3 470€/m², 129K€ | 19.8% |
 
-| Cluster | Nom | Description | Caractéristiques clés | % du marché |
-|---------|-----|-------------|----------------------|-------------|
-| **0** | Petits Appartements Province Sud | T1-T2 en PACA/Occitanie | 37m², 3,700€/m², 134K€ | **22.1%** (66,626 biens) |
-| **1** | Appartements Premium Paris/IDF | T2 parisiens haut de gamme | 43m², 9,900€/m², 425K€ | **9.5%** (28,725 biens) |
-| **2** | Appartements Familiaux IDF Périphérie | T3-T4 banlieue IDF | 70m², 3,100€/m², 218K€ | **19.5%** (58,780 biens) |
-| **3** | Appartements Standard Province | T3-T4 grandes villes | 70m², 2,900€/m², 202K€ | **21.8%** (65,836 biens) |
-| **4** | Grandes Maisons Familiales | T4-T5+ dispersés | 111m², 2,960€/m², 329K€ | **7.4%** (22,388 biens) |
-| **5** | Studios/T2 Province Dynamique | Petits biens métropoles | 38m², 3,470€/m², 129K€ | **19.8%** (59,661 biens) |
+**Métriques** :
+- Score Silhouette : **0.260**
+- Davies-Bouldin : **1.251**
+- Calinski-Harabasz : **3 220**
 
-**Utilité** :
-- 🎯 Affiner les estimations en comparant aux biens du même cluster
-- 📊 Identifier les typologies de marché dominantes par zone
-- 💡 Comprendre le positionnement d'un bien dans son segment
+### Isolation Forest — Détection d'opportunités
 
----
-
-### Isolation Forest (Détection d'anomalies)
-
-**Objectif** : Identifier les biens **sous-évalués** (opportunités d'investissement)
-
-**Fonctionnement** :
+**Score d'investissement multi-critères** :
 
 ```python
-def fit_isolation_forest(df, contamination=0.02)
+investment_score = (
+    45% × score_decote    +   # Décote vs marché local
+    20% × score_surface   +   # Qualité surface (pénalise < 25m² ou > 200m²)
+    20% × score_zone      +   # Attractivité zone géographique
+    15% × score_anomalie      # Degré d'anomalie détecté par Isolation Forest
+)
 ```
 
-1. **Features d'entrée** :
-   - `surface_reelle_bati`
-   - `nombre_pieces_principales`
-   - `prix_m2`
-   - `marche_prix_m2_median`
-   - `ratio_prix_marche` (prix_m2 / prix_marché_local)
-
-2. **Algorithme** :
-   - `IsolationForest` avec 500 arbres
-   - `contamination=0.02` (2% d'anomalies attendues)
-   - `random_state=42` (reproductibilité)
-
-3. **Scoring multi-critères** :
-   ```python
-   investment_score = (
-       45% × score_decote +        # Décote vs marché
-       20% × score_surface +        # Qualité surface (pénalise < 25m² ou > 200m²)
-       20% × score_zone +           # Attractivité zone (Métropole > Tourisme > IDF > Province)
-       15% × score_anomalie         # Degré d'anomalie détecté
-   )
-   ```
-
-4. **Filtres** :
-   - `anomaly_label == -1` (identifié comme anomalie)
-   - `ratio_prix_marche < max_ratio` (par défaut 0.85 = -15% de décote minimum)
-
-**Résultat** : Liste des **Top 50 opportunités** avec score d'investissement (0-100)
+**Paramètres production** (optimisés pour Render gratuit 512MB) :
+- `n_estimators=30`
+- `n_jobs=1`
+- Échantillon : 15 000 lignes via `$sample` MongoDB
 
 ---
 
 ## 🎨 Fonctionnalités de l'application
 
-L'application web propose **5 onglets interactifs** :
+### 1️⃣ Estimation de bien (`/estimation`)
 
-### 1️⃣ Estimation de bien
+- Autocomplétion du code postal via API Geo.gouv.fr
+- Gestion spéciale des arrondissements Paris / Lyon / Marseille
+- Estimation basée sur le prix médian communal + ajustement par typologie
+- Fourchette ±15%, standing relatif, cluster K-Means associé
 
-**URL** : `/estimation`
+### 2️⃣ Analyse de marché (`/analyse-marche`)
 
-**Fonction** : Estimer le prix d'un appartement en temps réel
+- **96 départements** organisés par région en `<optgroup>`
+- Graphiques : distribution des prix, répartition des standings
+- **Top 20 communes** les plus actives (pagination 10 par page)
+- Données DVF 2025 en temps réel depuis MongoDB
 
-**Inputs** :
-- Surface (m²)
-- Nombre de pièces
-- Code commune (ex: 75001, 69001)
+### 3️⃣ Cartographie interactive (`/cartographie`)
 
-**Algorithme** :
-```python
-class PriceEstimator:
-    def estimate_price(surface, nb_pieces, code_commune) -> Dict
-```
+- Carte Plotly avec 5 000 points échantillonnés via `$sample` MongoDB
+- Marqueurs colorés par cluster K-Means
+- Filtres prix min/max, zoom adaptatif
 
-1. Récupération du prix médian au m² de la commune
-2. Ajustement selon le nombre de pièces :
-   - T4+ → -5% (grands apparts moins chers au m²)
-   - Studios/T1 → +5% (prime aux petites surfaces)
-3. Calcul : `prix_estime = surface × prix_m2_ajusté`
-4. Fourchette : ±15% autour de l'estimation
-5. Détermination du standing (ratio vs marché local)
-6. Assignation au cluster K-Means le plus proche
+### 4️⃣ Biens Comparables (`/similaires`)
 
-**Outputs** :
-- Prix estimé + fourchette (min/max)
-- Prix au m²
-- Standing relatif (Décote → Prestige)
-- Statistiques de la commune (nb transactions, prix moyen...)
-- Cluster d'appartenance avec comparatifs
+- Autocomplétion code postal → nom commune (API Geo.gouv.fr)
+- Gestion arrondissements Paris / Lyon / Marseille
+- Critères : même département, ±30% surface, ±1 pièce
+- Tableau avec infobulles sur chaque colonne
+- Pagination 10 par 10, carte Plotly des résultats
+- Sidebar sticky sur desktop
 
----
+### 5️⃣ Opportunités d'Investissement (`/opportunites`)
 
-### 2️⃣ Analyse de marché
+- **Isolation Forest** sur 15 000 transactions échantillonnées
+- **8 filtres dynamiques** : score min, décote min, surface, pièces, prix total, prix/m², standing, zone
+- **10 zones géographiques** filtrées côté JS par département :
+  - Paris & Petite Couronne (75, 92, 93, 94)
+  - Grande Couronne IDF (77, 78, 91, 95)
+  - Grandes Métropoles (Lyon, Bordeaux, Nantes...)
+  - Côte d'Azur & PACA (06, 13, 83, 84)
+  - Stations de Montagne (73, 74, 05, 38)
+  - Littoral Atlantique (33, 44, 85, 17, 64)
+  - Bretagne & Normandie (29, 22, 56, 35, 14, 76)
+  - Marchés Haut de Gamme (75, 06, 74, 92, 83)
+  - Province Dynamique (31, 34, 35, 44, 33, 67)
+  - Province Accessible (reste du territoire)
+- Noms de communes résolus via **API Geo.gouv.fr** avec cache JS
+- **Modale fiche bien** : carte Plotly, analyse ImmoPRO, description auto-générée
+- Badges filtres actifs, pagination 10 par 10, tooltips sur toutes les colonnes
 
-**URL** : `/analyse-marche`
+### 6️⃣ Segments de marché (`/clusters`)
 
-**Fonction** : Analyse approfondie d'un département
-
-**Input** : Code département (01-95)
-
-**API** : `/api/analyse-departement/<code_dept>`
-
-**Métriques calculées** :
-- 📊 Nombre de transactions (volume du marché)
-- 💰 Prix médian/moyen au m²
-- 📈 Quartiles Q25/Q75 (dispersion des prix)
-- 🏠 Surface moyenne
-- 🏙️ Nombre de communes couvertes
-- ⭐ Répartition par standing (% Décote, Bonne affaire, Standard, Premium, Prestige)
-- 🗺️ Catégorie géographique dominante
-
-**Bonus** : Top 10 communes les plus actives du département (tri par nb de transactions)
-
----
-
-### 3️⃣ Cartographie interactive
-
-**URL** : `/cartographie`
-
-**Fonction** : Visualisation géographique des transactions
-
-**API** : `/api/map-data`
-
-**Données affichées** :
-- Échantillon de 5,000 biens (optimisation performances)
-- Latitude/Longitude de chaque transaction
-- Prix au m² (pour gradient de couleur)
-- Cluster K-Means (pour segmentation visuelle)
-- Code commune (infobulles)
-
-**Technologies** :
-- Frontend : Leaflet.js ou Mapbox
-- Marqueurs colorés par cluster ou prix
-- Interaction : zoom, filtres, infobulles
-
----
-
-### 4️⃣ Biens similaires
-
-**URL** : `/similaires`
-
-**Fonction** : Trouver des comparables dans le marché
-
-**Inputs** :
-- Surface (m²)
-- Nombre de pièces
-- Code commune
-
-**Algorithme** :
-```python
-class PriceEstimator:
-    def find_similar_properties(surface, nb_pieces, code_commune) -> DataFrame
-```
-
-**Critères de similarité** :
-1. **Zone** : Même département (code commune[:2])
-2. **Surface** : ±30% (`surface × 0.7` à `surface × 1.3`)
-3. **Typologie** : ±1 pièce (`nb_pieces - 1` à `nb_pieces + 1`)
-4. **Score** : Distance normalisée sur surface + écart de pièces
-
-**Output** : Top 10 biens similaires avec détails (prix, localisation, standing...)
-
----
-
-### 5️⃣ Détection d'opportunités
-
-**URL** : `/opportunites`
-
-**Fonction** : Identifier les meilleures affaires d'investissement
-
-**Inputs** :
-- `contamination` : Taux d'anomalies (0.01-0.10, défaut 0.02)
-- `max_ratio` : Décote maximale acceptée (ex: 0.85 = -15%)
-- `zone_filter` : Filtre géographique optionnel (Métropole, IDF, Tourisme, Province)
-
-**API** : `/api/opportunities` (POST)
-
-**Processus** :
-1. Application d'Isolation Forest sur tout le dataset
-2. Filtrage des anomalies avec ratio < max_ratio
-3. Calcul du score d'investissement multi-critères
-4. Tri par score décroissant
-5. Retour des Top 50 opportunités
-
-**Output** :
-- Liste des opportunités avec :
-  - Score d'investissement (0-100)
-  - Décote en % (ex: -22%)
-  - Prix, surface, pièces
-  - Localisation (lat/long + commune)
-  - Standing + zone géographique
-- Statistiques globales :
-  - Décote médiane
-  - Prix/m² médian
-  - Distribution des scores
-  - Répartition par zone
-
----
+- Profils détaillés des 6 clusters K-Means
+- Stats : prix moyen/m², surface moyenne, nb biens, % du marché total
+- Zones et départements dominants par cluster
 
 ---
 
 ## 👤 Authentification et recommandations
 
-### Système utilisateur
+- **Inscription** (`/register`) : Validation + hashage bcrypt
+- **Connexion** (`/login`) : Session Flask-Login
+- **Profil** (`/profile`) : Historique des recherches + recommandations personnalisées
+- Chaque recherche est sauvegardée en MongoDB (collection `search_sessions`)
+- Le moteur de recommandations analyse l'historique pour suggérer des communes cohérentes
 
-L'application intègre un système complet de gestion des utilisateurs basé sur **Flask-Login** et **MongoDB** :
-
-- **Inscription** (`/register`) : Création de compte avec validation et hashage du mot de passe (bcrypt)
-- **Connexion** (`/login`) : Authentification sécurisée avec gestion de session
-- **Profil** (`/profile`) : Tableau de bord personnel avec historique et recommandations
-
-### Historique des recherches
-
-Chaque recherche effectuée par un utilisateur connecté est automatiquement sauvegardée en MongoDB (collection `search_sessions`) avec le type, les paramètres et la date.
-
-### Moteur de recommandations
-
-Le moteur analyse l'historique de l'utilisateur pour construire un profil implicite :
-- Zones et départements les plus recherchés
-- Budget moyen estimé
-- Surface typique recherchée
-
-Il génère ensuite des suggestions de communes cohérentes avec ces préférences, actualisables depuis la page profil.
-
-### Collections MongoDB
-
-| Collection | Contenu |
-|------------|---------|
-| `properties` | Données immobilières DVF |
-| `communes` | Statistiques agrégées par commune |
-| `users` | Comptes utilisateurs |
-| `search_sessions` | Historique des recherches |
-| `recommendations` | Suggestions personnalisées |
-
-### Nouvelles routes
+### Routes
 
 | Endpoint | Méthode | Auth | Description |
 |----------|---------|------|-------------|
@@ -480,84 +301,130 @@ Il génère ensuite des suggestions de communes cohérentes avec ces préférenc
 | `/api/profile/preferences` | POST | Oui | Mise à jour préférences |
 | `/api/recommendations/refresh` | POST | Oui | Actualisation recommandations |
 
-## 💻 Installation
+---
+
+## 🌍 API Geo.gouv
+
+ImmoPRO intègre l'**API officielle Geo.gouv.fr** pour résoudre les codes INSEE en noms de communes réels.
+
+### Utilisation
+
+```javascript
+// Résolution d'un code commune → nom réel
+const res  = await fetch(`https://geo.api.gouv.fr/communes/${codeCommune}?fields=nom`);
+const data = await res.json();
+// data.nom → "Rueil-Malmaison", "Paris 7ème", "Lyon 3ème"...
+```
+
+### Pages concernées
+
+| Page | Usage |
+|------|-------|
+| **Estimation** | Autocomplétion code postal → commune |
+| **Comparables** | Autocomplétion + affichage nom commune dans tableau |
+| **Opportunités** | Résolution des codes communes dans tableau + modale |
+
+### Cache JS (Opportunités)
+
+Pour éviter des appels API répétés, un cache JS est pré-rempli avec les arrondissements de Paris, Lyon et Marseille, puis alimenté dynamiquement :
+
+```javascript
+const communeCache = {
+    '75107': 'Paris 7ème',
+    '69383': 'Lyon 3ème',
+    // ...
+};
+
+async function fetchCommuneLabel(codeCommune) {
+    if (communeCache[codeCommune]) return communeCache[codeCommune];
+    // Appel API Geo.gouv.fr si non en cache
+}
+```
+
+Le pré-chargement de tous les noms de communes se fait en parallèle au chargement des résultats via `Promise.all`.
+
+---
+
+## 💻 Installation locale
 
 ### Prérequis
 
-- **Python 3.10+**
-- **MongoDB 8.2+** (service démarré : `net start MongoDB`)
-- **pip** ou **uv** (gestionnaire de paquets)
+- **Python 3.11+**
+- **MongoDB local** (ou compte MongoDB Atlas)
+- **pip**
 
 ### Étapes
 
 1. **Cloner le projet** :
    ```bash
-   git clone <votre-repo>
-   cd clustering_immo_app
+   git clone https://github.com/RaphaelCalhegas/Bigdata.git
+   cd Bigdata-main
    ```
 
 2. **Installer les dépendances** :
    ```bash
-   pip install flask pandas numpy scikit-learn matplotlib seaborn plotly hdbscan scipy requests pymongo flask-login flask-bcrypt
+   pip install -r requirements.txt
    ```
 
-3. **Préparer les données et modèles** (obligatoire avant le premier lancement) :
-   ```bash
-   uv run python prepare_models.py
+3. **Configurer les variables d'environnement** — créer un fichier `.env` :
+   ```env
+   MONGO_URI=mongodb://localhost:27017/
+   DB_NAME=immopro
+   SECRET_KEY=votre-cle-secrete
    ```
-   
-   **Durée** : ~5-10 minutes (téléchargement + traitement)
-   
-   **Ce script va** :
-   - ⬇️ Télécharger DVF 2024 (6M+ lignes)
-   - 🧹 Nettoyer et filtrer (→ 302K appartements)
-   - 🛠️ Enrichir les données (prix_m2, standing, catégories...)
-   - 🤖 Entraîner le K-Means (6 clusters)
-   - 💾 Sauvegarder dans `models/` (4 fichiers .pkl)
 
-4. **(Optionnel) Analyser les clusters** :
+4. **Peupler MongoDB** (si base vide) :
    ```bash
-   uv run python analyze_clusters.py
+   python prepare_models.py
+   python migrate_reference_data.py
    ```
-   
-   Affiche les statistiques détaillées des 6 clusters (prix, surface, zones...).
+
+5. **Lancer l'application** :
+   ```bash
+   python app.py
+   ```
+
+   **Serveur** : http://localhost:5000
 
 ---
 
-## 🚀 Utilisation
+## 🚀 Déploiement production
 
-### Lancer l'application
+ImmoPRO est déployé sur **Render** avec **MongoDB Atlas**.
 
-```bash
-uv run python app.py
+### Stack production
+
+| Composant | Service | Détails |
+|-----------|---------|---------|
+| Application | Render (Web Service) | Instance gratuite, Python 3.11.9 |
+| Base de données | MongoDB Atlas | Cluster M0 gratuit (512MB) |
+| Serveur WSGI | Gunicorn | `--timeout 120 --workers 1` |
+| SSL MongoDB | certifi | `tlsCAFile=certifi.where()` |
+
+### Variables d'environnement Render
+
+```
+MONGO_URI  = mongodb+srv://<user>:<pass>@cluster.mongodb.net/immopro?retryWrites=true&w=majority
+DB_NAME    = immopro
+SECRET_KEY = <clé-secrète>
 ```
 
-**Serveur** : http://localhost:5000
+### Start Command
 
-**Debug mode** : Activé par défaut (recharge automatique sur modification)
+```bash
+gunicorn app:app --config gunicorn.conf.py
+```
 
-### Navigation
+### Points de vigilance
 
-1. **Page d'accueil** (`/`) : Présentation + liens vers les 5 onglets
-2. **Estimation** (`/estimation`) : Formulaire d'estimation
-3. **Analyse marché** (`/analyse-marche`) : Sélecteur de département
-4. **Cartographie** (`/cartographie`) : Carte interactive Leaflet
-5. **Biens similaires** (`/similaires`) : Recherche de comparables
-6. **Opportunités** (`/opportunites`) : Détection Isolation Forest
+- L'instance gratuite Render **s'endort après 15 min** d'inactivité → délai de réveil de ~50 secondes
+- MongoDB Atlas : Network Access doit inclure `0.0.0.0/0` pour Render
+- Les modèles ML (`.pkl`) sont inclus dans le repo GitHub (kmeans + scaler uniquement)
+- `prepare_models.py` n'est **plus nécessaire** en production — les données sont dans Atlas
 
-### API Endpoints
+### URL de production
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/api/estimate` | POST | Estimation de prix |
-| `/api/analyse-departement/<code>` | GET | Stats département |
-| `/api/top-communes/<code>` | GET | Top 10 communes |
-| `/api/cluster-info/<id>` | GET | Détails cluster |
-| `/api/map-data` | GET | Données cartographie |
-| `/api/find-similar` | POST | Biens similaires |
-| `/api/opportunities` | POST | Détection opportunités |
-| `/api/search-communes` | GET | Recherche communes |
-| `/api/departements` | GET | Liste départements |
+🌐 [https://bigdata-ggqx.onrender.com](https://bigdata-ggqx.onrender.com)
 
 ---
 
@@ -565,83 +432,95 @@ uv run python app.py
 
 ### Backend
 
-- **Flask 3.0.0** : Framework web léger
-- **Flask-Login** : Gestion des sessions utilisateurs
-- **Flask-Bcrypt** : Hashage sécurisé des mots de passe
-- **MongoDB 8.2** : Base de données NoSQL orientée documents
-- **PyMongo** : Driver Python pour MongoDB
-- **pandas 2.0+** : Manipulation de données
-- **NumPy 1.24+** : Calculs numériques
-- **scikit-learn 1.3+** : Machine Learning (K-Means, Isolation Forest, StandardScaler)
-- **HDBSCAN 0.8.33** : Clustering hiérarchique (alternatif, non utilisé en prod)
-- **requests 2.31+** : Téléchargement DVF
+| Technologie | Version | Usage |
+|-------------|---------|-------|
+| Flask | 3.1.3 | Framework web |
+| Flask-Login | 0.6.3 | Gestion sessions |
+| Flask-Bcrypt | 1.0.1 | Hashage mots de passe |
+| PyMongo | 4.16.0 | Driver MongoDB |
+| certifi | 2024+ | Certificats SSL Atlas |
+| pandas | 2.3.3 | Manipulation données |
+| NumPy | 2.2.6 | Calculs numériques |
+| scikit-learn | 1.7.2 | K-Means, Isolation Forest |
+| dnspython | 2.8.0 | Résolution DNS Atlas |
+| Gunicorn | 21.2.0 | Serveur WSGI production |
 
 ### Frontend
 
-- **Tailwind CSS** : Framework CSS utility-first
-- **JavaScript (Vanilla)** : Logique interactive par onglet
-- **Jinja2** : Moteur de templates Flask
-- **Font Awesome** : Icônes
-- **Leaflet.js / Mapbox** : Cartographie interactive
+| Technologie | Usage |
+|-------------|-------|
+| Tailwind CSS | Framework CSS utility-first |
+| JavaScript Vanilla | Logique interactive par onglet |
+| Jinja2 | Templates Flask |
+| Font Awesome 6.5.1 | Icônes |
+| Plotly 2.27.0 | Cartographie + graphiques |
+| Chart.js 4.4.0 | Graphiques analyse marché |
 
-### Data Science
+### APIs externes
 
-- **Source** : [DVF (Demande de Valeurs Foncières)](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/) - data.gouv.fr
-- **Volume** : 302,016 transactions d'appartements (année 2024, France métropolitaine)
-- **Algorithmes** :
-  - **K-Means** (clustering segmentation marché)
-  - **Isolation Forest** (détection anomalies)
-  - **StandardScaler** (normalisation features)
+| API | Usage |
+|-----|-------|
+| [Geo.gouv.fr](https://geo.api.gouv.fr) | Résolution codes communes → noms réels, autocomplétion |
 
----
+### Data
 
-## 📊 Résultats et performances
-
-### Clustering K-Means
-
-- **Métrique Silhouette** : 0.260 (séparation modérée, typique pour des données géospatiales complexes)
-- **Davies-Bouldin** : 1.251 (valeurs < 1.5 considérées bonnes)
-- **Calinski-Harabasz** : 3220 (densité et séparation satisfaisantes)
-- **Interprétabilité** : 6 segments métier clairement identifiables et exploitables
-- **Choix k=6** : Optimisé pour k=6 clusters après analyse comparative (vs k=5 et HDBSCAN)
-
-### Pipeline ETL
-
-- **Temps d'exécution** : ~5-10 minutes (selon connexion)
-- **Taux de conservation** : 67% après nettoyage (302K / 450K)
-- **Mémoire** : ~500 MB pour le dataset complet
-
-### Application Web
-
-- **Temps de réponse API** : < 100ms (estimation/analyse)
-- **Chargement initial** : ~3-5 secondes (lecture 4 fichiers .pkl)
-- **Concurrence** : Support multi-utilisateurs (Flask production avec Gunicorn)
+| Élément | Valeur |
+|---------|--------|
+| Source | [DVF data.gouv.fr](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/) |
+| Millésime | DVF 2025 |
+| Volume | 346 639 transactions d'appartements |
+| Communes | 6 767 communes référencées |
+| Couverture | France métropolitaine |
 
 ---
 
-## 📝 Améliorations futures
+## 📊 Performances et métriques
 
-- [ ] **API REST complète** : Documentation OpenAPI/Swagger
-- [x] **Authentification** : Comptes utilisateurs + historique des recherches
-- [ ] **Modèles avancés** : XGBoost/LightGBM pour estimation de prix
-- [ ] **Prédictions temporelles** : Forecasting des prix (ARIMA, Prophet)
-- [ ] **Export PDF** : Génération de rapports d'analyse
-- [ ] **Cache Redis** : Optimisation des requêtes récurrentes
-- [ ] **Docker** : Containerisation pour déploiement facile
-- [ ] **Dashboard admin** : Monitoring des modèles + ré-entraînement
+| Indicateur | Valeur |
+|------------|--------|
+| Score Silhouette K-Means | 0.260 |
+| Davies-Bouldin | 1.251 |
+| Calinski-Harabasz | 3 220 |
+| Temps réponse API estimation | < 100ms |
+| Temps détection opportunités | ~10 secondes |
+| Chargement carte (5K points) | ~2 secondes |
+
+---
+
+## 📝 Fonctionnalités complétées
+
+- [x] Authentification utilisateur (inscription, connexion, profil)
+- [x] MongoDB Atlas (migration complète depuis .pkl)
+- [x] Déploiement Render + SSL certifi
+- [x] 96 départements dans l'Analyse Marché
+- [x] Top 20 communes avec pagination
+- [x] Autocomplétion code postal (API Geo.gouv.fr)
+- [x] Biens comparables avec tooltips + pagination + carte
+- [x] Opportunités : 10 zones JS, 8 filtres dynamiques, modale fiche bien
+- [x] Noms communes via Geo.gouv.fr (cache + Promise.all)
+- [x] Optimisation mémoire ($sample MongoDB)
+
+## 🔜 Améliorations futures
+
+- [ ] Export PDF des analyses
+- [ ] Cache Redis pour requêtes récurrentes
+- [ ] Docker pour déploiement simplifié
+- [ ] XGBoost/LightGBM pour estimation de prix plus précise
+- [ ] Prédictions temporelles (évolution des prix)
+- [ ] Dashboard admin + monitoring
 
 ---
 
 ## 📄 Licence
 
-MIT License - Libre d'utilisation et modification
+MIT License — Libre d'utilisation et modification
 
 ---
 
 ## 👨‍💻 Auteurs
 
-**Raphael Calhegas** - **Emma Feneau**  
-Projet d'analyse immobilière IA - BIG DATA *(CY TECH - ING3 FINTECH - 2026)*
+**Raphael Calhegas** — **Emma Feneau**  
+Projet d'analyse immobilière IA — BIG DATA *(CY TECH — ING3 FINTECH — 2026)*
 
 ---
 
@@ -649,3 +528,4 @@ Projet d'analyse immobilière IA - BIG DATA *(CY TECH - ING3 FINTECH - 2026)*
 
 - **Enseignants** : Bruno Ixsil et Julien Savry
 - **data.gouv.fr** : Mise à disposition des données DVF
+- **Geo.gouv.fr** : API de référence des communes françaises
