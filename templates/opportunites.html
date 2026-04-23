@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Opportunités d'Investissement - Clustering Immo{% endblock %}
+{% block title %}Opportunités d'Investissement - ImmoPRO{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
+
     <!-- Header -->
     <div class="text-center mb-12 fade-in">
-        <h1
-            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+        <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
             Opportunités d'Investissement
         </h1>
         <p class="text-xl text-gray-600">Détection intelligente de biens sous-évalués via Isolation Forest</p>
@@ -37,7 +37,6 @@
                     </select>
                     <p class="text-sm text-gray-500 mt-2">Taux d'anomalies attendu</p>
                 </div>
-
                 <div>
                     <label class="form-label">
                         <i class="fas fa-chart-line text-emerald-600 mr-2"></i>
@@ -51,21 +50,25 @@
                     </select>
                     <p class="text-sm text-gray-500 mt-2">vs marché local</p>
                 </div>
-
                 <div>
                     <label class="form-label">
                         <i class="fas fa-map-marked-alt text-emerald-600 mr-2"></i>
                         Zone Géographique
                     </label>
                     <select class="form-control" id="zoneFilter">
-                        <option value="all" selected>Toutes zones</option>
-                        <option value="1_Metropole_Top15">Métropoles</option>
-                        <option value="2_Ile_de_France">Île-de-France</option>
-                        <option value="3_Zone_Touristique">Zones touristiques</option>
-                        <option value="4_Province_Standard">Province</option>
+                        <option value="all" selected>Toute la France</option>
+                        <option value="idf_paris">Paris &amp; Petite Couronne (75, 92, 93, 94)</option>
+                        <option value="idf_grande">Grande Couronne IDF (77, 78, 91, 95)</option>
+                        <option value="metropoles">Grandes Métropoles (Lyon, Bordeaux, Nantes...)</option>
+                        <option value="cote_azur">Côte d'Azur &amp; PACA (06, 13, 83, 84)</option>
+                        <option value="montagne">Stations de Montagne (73, 74, 05, 38)</option>
+                        <option value="atlantique">Littoral Atlantique (33, 44, 85, 17, 64)</option>
+                        <option value="bretagne_normandie">Bretagne &amp; Normandie (29, 22, 56, 35, 14, 76)</option>
+                        <option value="haut_de_gamme">Marchés Haut de Gamme (75, 06, 74, 92, 83)</option>
+                        <option value="province_dynamique">Province Dynamique (31, 34, 35, 44, 33, 67)</option>
+                        <option value="province_accessible">Province Accessible (reste du territoire)</option>
                     </select>
                 </div>
-
                 <div class="flex items-end">
                     <button id="btnAnalyze" class="btn btn-primary w-full">
                         <i class="fas fa-search-dollar text-xl"></i>
@@ -112,6 +115,134 @@
                 </h3>
             </div>
             <div class="card-body">
+
+                <!-- Filtres dynamiques -->
+                <div id="filtresSection" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-slate-700 flex items-center space-x-2">
+                            <i class="fas fa-filter text-emerald-600"></i>
+                            <span>Filtrer les résultats</span>
+                        </h4>
+                        <button onclick="resetFiltres()"
+                            class="text-xs text-slate-400 hover:text-emerald-600 transition-colors font-medium">
+                            <i class="fas fa-undo mr-1"></i> Réinitialiser
+                        </button>
+                    </div>
+
+                    <div class="grid md:grid-cols-4 gap-4 mb-4">
+
+                        <!-- Score minimum -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">
+                                Score minimum : <span id="labelScoreMin" class="text-emerald-600">0</span>/100
+                            </label>
+                            <input type="range" id="filtreScore" min="0" max="100" value="0" step="1"
+                                class="w-full accent-emerald-600 cursor-pointer"
+                                oninput="document.getElementById('labelScoreMin').textContent = this.value; applyFiltres()">
+                        </div>
+
+                        <!-- Décote minimum -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">
+                                Décote minimum : <span id="labelDecoteMin" class="text-emerald-600">0</span>%
+                            </label>
+                            <input type="range" id="filtreDecote" min="0" max="99" value="0" step="1"
+                                class="w-full accent-emerald-600 cursor-pointer"
+                                oninput="document.getElementById('labelDecoteMin').textContent = this.value; applyFiltres()">
+                        </div>
+
+                        <!-- Surface minimum -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">
+                                Surface minimum : <span id="labelSurfaceMin" class="text-emerald-600">0</span> m²
+                            </label>
+                            <input type="range" id="filtreSurface" min="0" max="300" value="0" step="5"
+                                class="w-full accent-emerald-600 cursor-pointer"
+                                oninput="document.getElementById('labelSurfaceMin').textContent = this.value; applyFiltres()">
+                        </div>
+
+                        <!-- Pièces minimum -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">
+                                Pièces minimum : <span id="labelPiecesMin" class="text-emerald-600">0</span>
+                            </label>
+                            <input type="range" id="filtrePieces" min="0" max="10" value="0" step="1"
+                                class="w-full accent-emerald-600 cursor-pointer"
+                                oninput="document.getElementById('labelPiecesMin').textContent = this.value; applyFiltres()">
+                        </div>
+
+                    </div>
+
+                    <div class="grid md:grid-cols-4 gap-4 mb-4">
+
+                        <!-- Prix Total max -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">
+                                Prix total max : <span id="labelPrixMax" class="text-emerald-600">Illimité</span>
+                            </label>
+                            <input type="range" id="filtrePrixMax" min="0" max="2000000" value="2000000" step="50000"
+                                class="w-full accent-emerald-600 cursor-pointer"
+                                oninput="
+                                    const v = parseInt(this.value);
+                                    document.getElementById('labelPrixMax').textContent = v >= 2000000 ? 'Illimité' : v.toLocaleString('fr-FR') + ' €';
+                                    applyFiltres()">
+                        </div>
+
+                        <!-- Prix m² max -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">
+                                Prix m² max : <span id="labelPrixM2Max" class="text-emerald-600">Illimité</span>
+                            </label>
+                            <input type="range" id="filtrePrixM2Max" min="0" max="20000" value="20000" step="500"
+                                class="w-full accent-emerald-600 cursor-pointer"
+                                oninput="
+                                    const v = parseInt(this.value);
+                                    document.getElementById('labelPrixM2Max').textContent = v >= 20000 ? 'Illimité' : v.toLocaleString('fr-FR') + ' €/m²';
+                                    applyFiltres()">
+                        </div>
+
+                        <!-- Standing -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">Standing</label>
+                            <select id="filtreStanding" class="form-control text-sm" onchange="applyFiltres()">
+                                <option value="all">Tous les standings</option>
+                                <option value="1_Decote_Travaux">Travaux</option>
+                                <option value="2_Bonne_Affaire">Bonne Affaire</option>
+                                <option value="3_Standard_Marche">Standard</option>
+                                <option value="4_Premium">Premium</option>
+                                <option value="5_Prestige_Exception">Prestige</option>
+                            </select>
+                        </div>
+
+                        <!-- Zone -->
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 mb-2 block">Zone</label>
+                            <select id="filtreZone" class="form-control text-sm" onchange="applyFiltres()">
+                                <option value="all">Toute la France</option>
+                                <option value="idf_paris">Paris &amp; Petite Couronne</option>
+                                <option value="idf_grande">Grande Couronne IDF</option>
+                                <option value="metropoles">Grandes Métropoles</option>
+                                <option value="cote_azur">Côte d'Azur &amp; PACA</option>
+                                <option value="montagne">Stations de Montagne</option>
+                                <option value="atlantique">Littoral Atlantique</option>
+                                <option value="bretagne_normandie">Bretagne &amp; Normandie</option>
+                                <option value="haut_de_gamme">Marchés Haut de Gamme</option>
+                                <option value="province_dynamique">Province Dynamique</option>
+                                <option value="province_accessible">Province Accessible</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- Résumé filtres actifs -->
+                    <div id="filtresActifs" class="hidden mt-3 flex items-center flex-wrap gap-2">
+                        <span class="text-xs text-slate-400">Filtres actifs :</span>
+                        <span id="filtresActifsBadges" class="flex flex-wrap gap-2"></span>
+                        <span id="filtresCount" class="text-xs font-semibold text-emerald-600"></span>
+                    </div>
+                </div>
+
+                <!-- Tableau -->
                 <div class="overflow-x-auto">
                     <table class="table" id="tableOpportunities">
                         <thead>
@@ -123,17 +254,39 @@
                                 <th>Marché Local</th>
                                 <th>Surface</th>
                                 <th>Pièces</th>
-                                <th>Zone</th>
+                                <th>Commune</th>
                                 <th>Standing</th>
+                                <th>Fiche</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="9" class="text-center text-gray-500">Aucune donnée</td>
+                                <td colspan="10" class="text-center text-gray-500">Aucune donnée</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div id="paginationOpportunities" class="hidden flex items-center justify-between mt-6">
+                    <p id="paginationOppInfo" class="text-sm text-gray-500"></p>
+                    <div class="flex items-center space-x-2">
+                        <button id="btnPrevOpp"
+                            class="px-4 py-2 text-sm font-semibold text-emerald-700 border-2 border-emerald-200
+                                   hover:border-emerald-400 hover:bg-emerald-50 rounded-xl transition-all duration-200
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                            Précédent
+                        </button>
+                        <span id="paginationOppPages" class="flex items-center space-x-1"></span>
+                        <button id="btnNextOpp"
+                            class="px-4 py-2 text-sm font-semibold text-emerald-700 border-2 border-emerald-200
+                                   hover:border-emerald-400 hover:bg-emerald-50 rounded-xl transition-all duration-200
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                            Suivant
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -150,7 +303,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="card hover-lift">
                 <div class="card-body">
                     <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
@@ -174,8 +326,7 @@
             <h3 class="text-3xl font-bold text-gray-800 mb-4">Prêt à détecter des opportunités ?</h3>
             <p class="text-lg text-gray-600 max-w-md mx-auto">
                 L'algorithme Isolation Forest identifie les biens significativement sous-évalués par rapport à leur
-                marché local,
-                avec un système de scoring multi-critères (décote, surface, zone, anomaly score).
+                marché local, avec un système de scoring multi-critères (décote, surface, zone, anomaly score).
             </p>
         </div>
     </div>
@@ -188,7 +339,158 @@
             <p id="errorMessage" class="text-lg"></p>
         </div>
     </div>
+
 </div>
+
+<!-- Tooltip global -->
+<div id="tooltip-global"></div>
+
+<!-- Modale Fiche Bien -->
+<div id="modalAnnonce" class="fixed inset-0 z-[9998] hidden items-center justify-center p-4"
+     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+
+        <!-- Header modale -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 rounded-t-2xl">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full">
+                            Opportunité ImmoPRO
+                        </span>
+                        <span id="modalScore"
+                            class="bg-emerald-400/30 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        </span>
+                    </div>
+                    <h2 id="modalTitre" class="text-2xl font-extrabold text-white mb-1"></h2>
+                    <p id="modalLocalisation" class="text-emerald-100 text-sm"></p>
+                </div>
+                <button onclick="closeModal()"
+                    class="text-white/80 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Corps -->
+        <div class="p-6">
+
+            <!-- Disclaimer -->
+            <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start space-x-3">
+                <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
+                <p class="text-amber-700 text-xs leading-relaxed">
+                    <strong>Simulation pédagogique</strong> — Cette fiche est générée automatiquement à partir
+                    des données officielles DVF 2025. Il ne s'agit pas d'une annonce réelle.
+                    Les photos et la description sont fictives.
+                </p>
+            </div>
+
+            <!-- Photo + Prix -->
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+
+                <!-- Photo fictive -->
+                <div class="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
+                     style="height: 220px;">
+                    <div id="modalPhoto" class="w-full h-full flex items-center justify-center">
+                        <i class="fas fa-home text-8xl text-slate-300"></i>
+                    </div>
+                    <div class="absolute bottom-3 left-3">
+                        <span id="modalStandingBadge" class="px-3 py-1 rounded-full text-xs font-bold"></span>
+                    </div>
+                </div>
+
+                <!-- Chiffres clés -->
+                <div class="space-y-3">
+                    <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                        <p class="text-xs text-gray-500 uppercase font-semibold mb-1">Prix de vente</p>
+                        <p id="modalPrix" class="text-3xl font-extrabold text-emerald-600"></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <p class="text-xs text-gray-400 mb-1">Surface</p>
+                            <p id="modalSurface" class="text-lg font-bold text-slate-700"></p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <p class="text-xs text-gray-400 mb-1">Pièces</p>
+                            <p id="modalPieces" class="text-lg font-bold text-slate-700"></p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <p class="text-xs text-gray-400 mb-1">Prix/m²</p>
+                            <p id="modalPrixM2" class="text-lg font-bold text-slate-700"></p>
+                        </div>
+                        <div class="bg-red-50 rounded-xl p-3 border border-red-100">
+                            <p class="text-xs text-gray-400 mb-1">Décote</p>
+                            <p id="modalDecote" class="text-lg font-bold text-red-600"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analyse ImmoPRO -->
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100 mb-6">
+                <h3 class="font-bold text-emerald-800 mb-3 flex items-center space-x-2">
+                    <i class="fas fa-chart-line text-emerald-600"></i>
+                    <span>Analyse ImmoPRO</span>
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Marché local (médiane)</p>
+                        <p id="modalMarche" class="font-bold text-slate-700"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Score d'opportunité</p>
+                        <p id="modalScoreDetail" class="font-bold text-emerald-600"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Commune</p>
+                        <p id="modalZone" class="font-bold text-slate-700"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Potentiel estimé</p>
+                        <p id="modalPotentiel" class="font-bold text-emerald-600"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-6">
+                <h3 class="font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <i class="fas fa-file-alt text-slate-500"></i>
+                    <span>Description du bien</span>
+                </h3>
+                <p id="modalDescription" class="text-slate-600 leading-relaxed text-sm"></p>
+            </div>
+
+            <!-- Mini carte -->
+            <div class="mb-6">
+                <h3 class="font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <i class="fas fa-map-marked-alt text-emerald-600"></i>
+                    <span>Localisation</span>
+                </h3>
+                <div id="modalMap" class="rounded-xl overflow-hidden" style="height: 250px;"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    #tooltip-global {
+        position:       fixed;
+        z-index:        9999;
+        background:     #1e293b;
+        color:          white;
+        font-size:      0.75rem;
+        border-radius:  0.75rem;
+        padding:        0.75rem;
+        max-width:      260px;
+        line-height:    1.6;
+        pointer-events: none;
+        display:        none;
+        box-shadow:     0 10px 30px rgba(0,0,0,0.3);
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}

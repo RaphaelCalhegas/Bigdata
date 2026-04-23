@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Biens Similaires - Clustering Immo{% endblock %}
+{% block title %}Biens Similaires - ImmoPRO{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
+
     <!-- Header -->
     <div class="text-center mb-12 fade-in">
-        <h1
-            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+        <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
             Recherche de Comparables
         </h1>
         <p class="text-xl text-gray-600">Trouvez des biens similaires pour justifier vos estimations</p>
     </div>
 
-    <div class="grid lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-1 space-y-8">
-            <div class="card hover-lift sticky top-24">
+    <div class="grid lg:grid-cols-3 gap-8 items-start">
+
+        <!-- Colonne gauche : formulaire fixe -->
+        <div class="lg:col-span-1 space-y-8 lg:sticky lg:top-24 lg:self-start">
+            <div class="card hover-lift">
                 <div class="card-header">
                     <h2 class="text-xl font-bold flex items-center space-x-3">
                         <i class="fas fa-search text-xl"></i>
@@ -24,13 +26,14 @@
                 </div>
                 <div class="card-body">
                     <form id="searchForm" class="space-y-6">
+
                         <div>
                             <label for="searchSurface" class="form-label">
                                 <i class="fas fa-ruler-combined text-emerald-600 mr-2"></i>
                                 Surface (m²)
                             </label>
-                            <input type="number" class="form-control" id="searchSurface" min="10" max="500" required
-                                placeholder="Ex: 70">
+                            <input type="number" class="form-control" id="searchSurface"
+                                min="10" max="500" required placeholder="Ex: 70">
                         </div>
 
                         <div>
@@ -38,26 +41,37 @@
                                 <i class="fas fa-door-open text-emerald-600 mr-2"></i>
                                 Nombre de pièces
                             </label>
-                            <input type="number" class="form-control" id="searchPieces" min="1" max="10" step="0.5"
-                                required placeholder="Ex: 3">
+                            <input type="number" class="form-control" id="searchPieces"
+                                min="1" max="10" step="0.5" required placeholder="Ex: 3">
                         </div>
 
                         <div>
-                            <label for="searchCommune" class="form-label">
+                            <label for="searchCodePostal" class="form-label">
                                 <i class="fas fa-map-marker-alt text-emerald-600 mr-2"></i>
-                                Code Commune
+                                Code Postal 
                             </label>
-                            <input type="text" class="form-control" id="searchCommune" required placeholder="Ex: 75101"
-                                maxlength="5">
-                            <p class="text-sm text-gray-500 mt-2">
-                                Recherche dans le même département (±30% surface, ±1 pièce)
-                            </p>
+                            <div class="relative">
+                                <input type="text" class="form-control" id="searchCodePostal"
+                                    placeholder="Ex: 75001" maxlength="100" autocomplete="off">
+                                <input type="hidden" id="searchCommune">
+
+                                <!-- Suggestions -->
+                                <div id="searchSuggestions"
+                                    class="hidden absolute left-0 right-0 mt-1 bg-white border border-emerald-200
+                                           rounded-xl shadow-lg overflow-hidden z-50 max-h-60 overflow-y-auto">
+                                </div>
+                            </div>
+
+                            <!-- Commune sélectionnée -->
+                            <p class="text-sm text-emerald-600 mt-2 font-medium" id="searchCommuneSelected"></p>
+                            <p class="text-sm text-gray-500 mt-1">Recherche dans le même département (±30% surface, ±1 pièce)</p>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-full text-lg">
                             <i class="fas fa-search text-xl"></i>
                             <span>Trouver des Comparables</span>
                         </button>
+
                     </form>
                 </div>
             </div>
@@ -76,9 +90,13 @@
             </div>
         </div>
 
+        <!-- Colonne droite : résultats -->
         <div class="lg:col-span-2 space-y-8">
+
             <!-- Résultats -->
             <div id="resultsSection" class="hidden space-y-8 fade-in">
+
+                <!-- Tableau -->
                 <div class="card hover-lift">
                     <div class="card-header">
                         <h3 class="text-2xl font-bold flex items-center space-x-3">
@@ -102,19 +120,41 @@
                                 <tbody></tbody>
                             </table>
                         </div>
+
+                        <!-- Pagination -->
+                        <div id="paginationResults" class="hidden flex items-center justify-between mt-6">
+                            <p id="paginationResultsInfo" class="text-sm text-gray-500"></p>
+                            <div class="flex items-center space-x-2">
+                                <button id="btnPrevResults"
+                                    class="px-4 py-2 text-sm font-semibold text-emerald-700 border-2 border-emerald-200
+                                           hover:border-emerald-400 hover:bg-emerald-50 rounded-xl transition-all duration-200
+                                           disabled:opacity-40 disabled:cursor-not-allowed">
+                                    Précédent
+                                </button>
+                                <span id="paginationResultsPages" class="flex items-center space-x-1"></span>
+                                <button id="btnNextResults"
+                                    class="px-4 py-2 text-sm font-semibold text-emerald-700 border-2 border-emerald-200
+                                           hover:border-emerald-400 hover:bg-emerald-50 rounded-xl transition-all duration-200
+                                           disabled:opacity-40 disabled:cursor-not-allowed">
+                                    Suivant
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Mini Carte -->
+                <!-- Carte -->
                 <div class="card hover-lift">
                     <div class="card-body">
                         <h3 class="text-xl font-bold mb-6 flex items-center space-x-3">
                             <i class="fas fa-map-marked-alt text-emerald-600 text-2xl"></i>
                             <span>Localisation des Comparables</span>
                         </h3>
-                        <div id="miniMap" class="rounded-xl overflow-hidden" style="height: 400px;"></div>
+                        <div id="miniMap" class="rounded-xl overflow-hidden" style="height: 450px;"></div>
                     </div>
                 </div>
+
             </div>
 
             <!-- Message initial -->
@@ -123,8 +163,7 @@
                     <div class="inline-block p-8 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-6">
                         <i class="fas fa-clipboard-list text-6xl text-emerald-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Lancez une recherche pour voir les biens
-                        similaires</h3>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Lancez une recherche pour voir les biens similaires</h3>
                     <p class="text-lg text-gray-600 max-w-md mx-auto">
                         Les comparables sont essentiels pour justifier un prix de vente ou d'achat.
                     </p>
@@ -139,9 +178,30 @@
                     <p id="errorText" class="text-lg"></p>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+<div id="tooltip-global-sim"></div>
+
+<style>
+    #tooltip-global-sim {
+        position:       fixed;
+        z-index:        9999;
+        background:     #1e293b;
+        color:          white;
+        font-size:      0.75rem;
+        border-radius:  0.75rem;
+        padding:        0.75rem;
+        max-width:      260px;
+        line-height:    1.6;
+        pointer-events: none;
+        display:        none;
+        box-shadow:     0 10px 30px rgba(0,0,0,0.3);
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}

@@ -1,4 +1,4 @@
-# 🏘️ ImmoPRO - Plateforme d'Analyse Immobilière par Intelligence Artificielle 
+# 🏘️ ImmoInsight Pro - Plateforme d'Analyse Immobilière par Intelligence Artificielle 
 
 Application Flask de pointe exploitant le Machine Learning pour l'analyse approfondie du marché immobilier français à partir des données **DVF 2024** (Demande de Valeurs Foncières).
 
@@ -26,7 +26,7 @@ Application Flask de pointe exploitant le Machine Learning pour l'analyse approf
 
 ## 🎯 Vue d'ensemble
 
-**ImmoPRO** est une plateforme web d'analyse immobilière qui exploite **302,000+ transactions immobilières** de l'année 2024 pour fournir :
+**ImmoInsight Pro** est une plateforme web d'analyse immobilière qui exploite **302,000+ transactions immobilières** de l'année 2024 pour fournir :
 
 - ✅ **Estimations de prix** basées sur l'analyse par clustering K-Means
 - 📊 **Analyses de marché** par département et commune

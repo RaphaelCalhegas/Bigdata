@@ -7,7 +7,7 @@ import os
 
 # Configuration
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
-DB_NAME = os.getenv("DB_NAME", "immo_insight")
+DB_NAME = os.getenv("DB_NAME", "immo_pro_dev")
 
 # Client global
 _client = None

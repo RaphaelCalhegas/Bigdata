@@ -165,41 +165,49 @@ def api_refresh_recommendations():
 
 @app.route("/")
 def index():
-    """Page d'accueil principale."""
-    return render_template("index.html")
+    """Landing si non connecté, dashboard si connecté."""
+    if current_user.is_authenticated:
+        return render_template("index.html")
+    return render_template("landing.html")
 
 
 @app.route("/clusters")
+@login_required
 def clusters():
     """Page des profils de clusters."""
     return render_template("clusters.html")
 
 
 @app.route("/estimation")
+@login_required
 def estimation():
     """Onglet 1 : Estimation de bien."""
     return render_template("estimation.html")
 
 
 @app.route("/analyse-marche")
+@login_required
 def analyse_marche():
     """Onglet 2 : Analyse de marché par zone."""
     return render_template("analyse_marche.html")
 
 
 @app.route("/cartographie")
+@login_required
 def cartographie():
     """Onglet 3 : Cartographie interactive."""
     return render_template("cartographie.html")
 
 
 @app.route("/similaires")
+@login_required
 def similaires():
     """Onglet 4 : Biens similaires."""
     return render_template("similaires.html")
 
 
 @app.route("/opportunites")
+@login_required
 def opportunites():
     """Onglet 5 : Détection d'opportunités avec Isolation Forest."""
     return render_template("opportunites.html")
@@ -267,7 +275,7 @@ def api_top_communes(code_dept):
             data_manager.df_reference["code_commune"].str.startswith(code_dept)
         ]
 
-        top_communes = dept_data["code_commune"].value_counts().head(10)
+        top_communes = dept_data["code_commune"].value_counts().head(20)
 
         results = []
         for code_commune, count in top_communes.items():
@@ -337,7 +345,7 @@ def api_find_similar():
             return jsonify({"success": False, "error": "Données invalides"}), 400
 
         similar_df = estimator.find_similar_properties(
-            surface, nb_pieces, code_commune, max_results=10
+            surface, nb_pieces, code_commune, max_results=20
         )
 
         results = []

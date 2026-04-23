@@ -47,19 +47,19 @@
                         </div>
 
                         <div>
-                            <label for="code_commune" class="form-label">
+                            <label for="code_postal" class="form-label">
                                 <i class="fas fa-map-marker-alt text-emerald-600 mr-2"></i>
-                                Code Commune (INSEE)
+                                Code Postal
                             </label>
-                            <input type="text" class="form-control" id="code_commune" name="code_commune" required
-                                placeholder="Ex: 75101" maxlength="5">
-                            <p class="text-sm text-gray-500 mt-2">
-                                Code à 5 chiffres
-                                <a href="https://www.insee.fr/fr/recherche/recherche-geographique" target="_blank"
-                                    class="text-emerald-600 hover:underline">
-                                    <i class="fas fa-external-link-alt"></i> Rechercher
-                                </a>
-                            </p>
+                            <input type="text" class="form-control" id="code_postal" name="code_postal"
+                                placeholder="Ex: 75001" maxlength="5" autocomplete="off">
+                            <input type="hidden" id="code_commune" name="code_commune">
+
+                            <!-- Suggestions -->
+                            <div id="communeSuggestions" class="hidden mt-2 bg-white border border-emerald-200 rounded-xl shadow-lg overflow-hidden z-10"></div>
+
+                            <p class="text-sm text-gray-500 mt-2" id="communeSelected"></p>
+                            <p class="text-sm text-gray-500 mt-1">Entrez votre code postal à 5 chiffres</p>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-full text-lg">
