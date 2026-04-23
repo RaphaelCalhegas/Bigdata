@@ -419,7 +419,7 @@ def api_opportunities():
                 "valeur_fonciere": {"$gte": 50000},
                 "prix_m2":         {"$gte": 500}
             }},
-            {"$sample": {"size": 5000}},
+            {"$sample": {"size": 15000}},
             {"$project": {"_id": 0}}
         ]))
 

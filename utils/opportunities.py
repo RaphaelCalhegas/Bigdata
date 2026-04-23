@@ -38,9 +38,9 @@ def fit_isolation_forest(df, contamination=0.02):
     scaler   = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 30 estimateurs pour économiser RAM sur Render gratuit
+    # 100 estimateurs pour économiser RAM sur Render gratuit
     model = IsolationForest(
-        n_estimators=30,
+        n_estimators=100,
         contamination=contamination,
         random_state=42,
         n_jobs=1
