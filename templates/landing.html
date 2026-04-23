@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmoPRO - Analyse Immobilière par Intelligence Artificielle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(35px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up    { animation: fadeInUp 0.65s ease-out forwards; }
+        .fade-up.d1 { animation-delay:0.10s; opacity:0; }
+        .fade-up.d2 { animation-delay:0.25s; opacity:0; }
+        .fade-up.d3 { animation-delay:0.40s; opacity:0; }
+        .fade-up.d4 { animation-delay:0.55s; opacity:0; }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        .float-icon { animation: float 3.5s ease-in-out infinite; }
+        @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        .gradient-animate { background-size:200% 200%; animation:gradientShift 4s ease infinite; }
+        .landing-nav { position:fixed; top:0; left:0; right:0; z-index:50; background:rgba(255,255,255,0.93); backdrop-filter:blur(12px); box-shadow:0 2px 20px rgba(16,185,129,0.08); border-bottom:1px solid #d1fae5; }
+        .hero-section { background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 40%,#ccfbf1 100%); background-size:300% 300%; animation:gradientShift 8s ease infinite; }
+        .feat-card { background:white; border:1.5px solid #d1fae5; border-radius:1.25rem; padding:1.75rem; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow:0 2px 12px rgba(16,185,129,0.06); }
+        .feat-card:hover { transform:translateY(-6px); border-color:#10b981; box-shadow:0 16px 40px rgba(16,185,129,0.15); }
+        .stat-block { background:linear-gradient(135deg,#ecfdf5,white); border:2px solid #d1fae5; border-radius:1.25rem; padding:1.75rem; text-align:center; transition:all 0.3s; }
+        .stat-block:hover { transform:translateY(-5px); border-color:#10b981; box-shadow:0 12px 30px rgba(16,185,129,0.15); }
+        .stat-num { font-size:2.5rem; font-weight:800; background:linear-gradient(135deg,#10b981,#14b8a6); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .cta-section { background:linear-gradient(135deg,#065f46 0%,#047857 50%,#0d9488 100%); background-size:200% 200%; animation:gradientShift 6s ease infinite; }
+        .btn-hero { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.25rem; background:linear-gradient(135deg,#10b981,#14b8a6); color:white; font-weight:700; font-size:1.05rem; border-radius:0.875rem; box-shadow:0 6px 20px rgba(16,185,129,0.35); transition:all 0.25s; }
+        .btn-hero:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 12px 30px rgba(16,185,129,0.45); }
+        .btn-outline { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.25rem; background:white; color:#047857; font-weight:600; font-size:1.05rem; border-radius:0.875rem; border:2px solid #10b981; transition:all 0.25s; }
+        .btn-outline:hover { background:#d1fae5; transform:translateY(-2px); }
+        .tech-pill { display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:9999px; font-size:0.85rem; font-weight:600; color:#065f46; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+        .bounce { animation:bounce 1.4s ease-in-out infinite; }
+        .section-alt { background:linear-gradient(180deg,#f0fdf4 0%,#ffffff 100%); }
+    </style>
+</head>
+<body class="bg-white text-slate-800">
+
+<!-- NAVBAR -->
+<nav class="landing-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="bg-gradient-to-br from-emerald-600 to-teal-600 p-2 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-emerald-200">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">ImmoPRO</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-1 text-sm">
+                <a href="#fonctionnalites" class="nav-link">Fonctionnalités</a>
+                <a href="#donnees" class="nav-link">Données</a>
+                <a href="#technologie" class="nav-link">Technologie</a>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl bg-white hover:bg-emerald-50 transition-all duration-200">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Connexion
+                </a>
+                <a href="{{ url_for('register') }}" class="px-4 py-2 text-sm font-bold text-white rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 hover:scale-105 active:scale-95 transition-all duration-200">
+                    S'inscrire gratuitement
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-section min-h-screen flex items-center pt-16 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
+        <div class="text-center max-w-4xl mx-auto">
+            <div class="fade-up inline-flex items-center space-x-2 bg-white/80 border border-emerald-300 rounded-full px-5 py-2 mb-8 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-flex"></span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 -ml-3"></span>
+                <span class="text-emerald-700 text-sm font-semibold">302 000+ transactions DVF 2025 analysées en temps réel</span>
+            </div>
+            <div class="fade-up d1 inline-block p-7 bg-white rounded-full shadow-xl shadow-emerald-200 border-2 border-emerald-100 mb-8 float-icon">
+                <i class="fas fa-home text-7xl text-emerald-600"></i>
+            </div>
+            <h1 class="fade-up d2 text-5xl md:text-7xl font-extrabold mb-6 leading-tight text-slate-800">
+                L'analyse immobilière<br>
+                <span class="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent gradient-animate">propulsée par l'IA</span>
+            </h1>
+            <p class="fade-up d3 text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Estimez, analysez et découvrez les meilleures opportunités d'investissement immobilier grâce au Machine Learning et aux données réelles du marché français.
+            </p>
+            <div class="fade-up d4 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                <a href="{{ url_for('register') }}" class="btn-hero w-full sm:w-auto justify-center">
+                    <i class="fas fa-rocket"></i> Commencer gratuitement
+                </a>
+                <a href="{{ url_for('login') }}" class="btn-outline w-full sm:w-auto justify-center">
+                    <i class="fas fa-sign-in-alt"></i> J'ai déjà un compte
+                </a>
+            </div>
+            <div class="fade-up d4 grid grid-cols-3 gap-4 max-w-md mx-auto">
+                <div class="bg-white/80 rounded-2xl py-4 border border-emerald-100 shadow-sm">
+                    <p class="text-2xl font-extrabold text-emerald-600">302K+</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Transactions</p>
+                </div>
+                <div class="bg-white/80 rounded-2xl py-4 border border-emerald-100 shadow-sm">
+                    <p class="text-2xl font-extrabold text-emerald-600">6</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Segments IA</p>
+                </div>
+                <div class="bg-white/80 rounded-2xl py-4 border border-emerald-100 shadow-sm">
+                    <p class="text-2xl font-extrabold text-emerald-600">13K+</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Communes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bounce">
+        <a href="#fonctionnalites"><i class="fas fa-chevron-down text-emerald-500 text-xl opacity-70"></i></a>
+    </div>
+</section>
+
+<!-- FONCTIONNALITÉS -->
+<section id="fonctionnalites" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 scroll-reveal">
+            <h2 class="text-4xl font-extrabold text-slate-800 mb-4">Tout ce dont vous avez besoin</h2>
+            <p class="text-slate-500 text-lg max-w-2xl mx-auto">Une plateforme complète pour analyser le marché immobilier français avec précision.</p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="feat-card scroll-reveal">
+                <div class="inline-flex p-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl mb-4 border border-emerald-200">
+                    <i class="fas fa-calculator text-3xl text-emerald-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Estimation IA</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Estimez le prix d'un bien en quelques secondes grâce au clustering K-Means appliqué sur 302 000 transactions réelles, avec fourchette et standing relatif.</p>
+                <div class="mt-4 flex items-center text-emerald-600 text-sm font-semibold"><span>Basé sur le marché local</span><i class="fas fa-arrow-right ml-2 text-xs"></i></div>
+            </div>
+            <div class="feat-card scroll-reveal" style="animation-delay:0.1s">
+                <div class="inline-flex p-4 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl mb-4 border border-blue-200">
+                    <i class="fas fa-chart-bar text-3xl text-blue-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Analyse de Marché</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Explorez les tendances par département : prix médian, répartition des standings, top communes actives et distribution des prix.</p>
+                <div class="mt-4 flex items-center text-blue-600 text-sm font-semibold"><span>17 départements couverts</span><i class="fas fa-arrow-right ml-2 text-xs"></i></div>
+            </div>
+            <div class="feat-card scroll-reveal" style="animation-delay:0.2s">
+                <div class="inline-flex p-4 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl mb-4 border border-purple-200">
+                    <i class="fas fa-map-marked-alt text-3xl text-purple-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Cartographie Interactive</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Visualisez sur une carte Leaflet la répartition des prix au m² et des clusters IA sur le territoire, avec 5 000 points en temps réel.</p>
+                <div class="mt-4 flex items-center text-purple-600 text-sm font-semibold"><span>Vue nationale instantanée</span><i class="fas fa-arrow-right ml-2 text-xs"></i></div>
+            </div>
+            <div class="feat-card scroll-reveal" style="animation-delay:0.1s">
+                <div class="inline-flex p-4 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl mb-4 border border-amber-200">
+                    <i class="fas fa-bolt text-3xl text-amber-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Détection d'Opportunités</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">L'algorithme Isolation Forest identifie les biens sous-évalués avec un score d'investissement multi-critères : décote, surface, zone, anomalie.</p>
+                <div class="mt-4 flex items-center text-amber-600 text-sm font-semibold"><span>Jusqu'à -30% sous le marché</span><i class="fas fa-arrow-right ml-2 text-xs"></i></div>
+            </div>
+            <div class="feat-card scroll-reveal" style="animation-delay:0.2s">
+                <div class="inline-flex p-4 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl mb-4 border border-rose-200">
+                    <i class="fas fa-search text-3xl text-rose-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Biens Comparables</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Trouvez les transactions les plus proches de votre bien selon la surface, le nombre de pièces et la localisation.</p>
+                <div class="mt-4 flex items-center text-rose-500 text-sm font-semibold"><span>Scoring de similarité précis</span><i class="fas fa-arrow-right ml-2 text-xs"></i></div>
+            </div>
+            <div class="feat-card scroll-reveal" style="animation-delay:0.3s">
+                <div class="inline-flex p-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl mb-4 border border-emerald-200">
+                    <i class="fas fa-user-circle text-3xl text-teal-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Recommandations Perso.</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Votre historique alimente un moteur de recommandations qui vous suggère les communes correspondant à votre profil d'investisseur.</p>
+                <div class="mt-4 flex items-center text-teal-600 text-sm font-semibold"><span>Profil adaptatif</span><i class="fas fa-arrow-right ml-2 text-xs"></i></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- DONNÉES -->
+<section id="donnees" class="py-24 section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 scroll-reveal">
+            <h2 class="text-4xl font-extrabold text-slate-800 mb-4">Des données réelles, pas des estimations</h2>
+            <p class="text-slate-500 text-lg">Toutes les analyses reposent sur les données officielles <span class="font-semibold text-emerald-700">DVF 2024</span> de data.gouv.fr</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="stat-block scroll-reveal"><i class="fas fa-home text-emerald-500 text-2xl mb-3"></i><p class="stat-num">302K+</p><p class="text-slate-700 font-semibold text-sm mt-1">Transactions</p><p class="text-slate-400 text-xs mt-1">Appartements France 2024</p></div>
+            <div class="stat-block scroll-reveal" style="animation-delay:0.1s"><i class="fas fa-map-pin text-teal-500 text-2xl mb-3"></i><p class="stat-num">13K+</p><p class="text-slate-700 font-semibold text-sm mt-1">Communes</p><p class="text-slate-400 text-xs mt-1">Prix médian calculé</p></div>
+            <div class="stat-block scroll-reveal" style="animation-delay:0.2s"><i class="fas fa-layer-group text-emerald-500 text-2xl mb-3"></i><p class="stat-num">6</p><p class="text-slate-700 font-semibold text-sm mt-1">Segments IA</p><p class="text-slate-400 text-xs mt-1">Clustering K-Means</p></div>
+            <div class="stat-block scroll-reveal" style="animation-delay:0.3s"><i class="fas fa-star text-teal-500 text-2xl mb-3"></i><p class="stat-num">5</p><p class="text-slate-700 font-semibold text-sm mt-1">Niveaux de standing</p><p class="text-slate-400 text-xs mt-1">Décote → Prestige</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- TECHNOLOGIE -->
+<section id="technologie" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+            <div class="scroll-reveal">
+                <h2 class="text-4xl font-extrabold text-slate-800 mb-6">Propulsé par le <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Machine Learning</span></h2>
+                <p class="text-slate-500 mb-8 leading-relaxed">ImmoPRO transforme 302 000 transactions brutes en insights actionnables grâce à des algorithmes de pointe, pour des décisions immobilières éclairées.</p>
+                <div class="space-y-5">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-emerald-200">
+                            <i class="fas fa-circle-nodes text-emerald-600"></i>
+                        </div>
+                        <div><h4 class="font-bold text-slate-800 mb-1">K-Means Clustering</h4><p class="text-slate-500 text-sm">Segmente le marché en 6 groupes homogènes selon le prix, la surface et la localisation. Score silhouette : 0.260.</p></div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-emerald-200">
+                            <i class="fas fa-tree text-emerald-600"></i>
+                        </div>
+                        <div><h4 class="font-bold text-slate-800 mb-1">Isolation Forest</h4><p class="text-slate-500 text-sm">Détecte les biens significativement sous-évalués par rapport au marché local pour identifier les meilleures opportunités.</p></div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-emerald-200">
+                            <i class="fas fa-database text-teal-600"></i>
+                        </div>
+                        <div><h4 class="font-bold text-slate-800 mb-1">MongoDB + Flask</h4><p class="text-slate-500 text-sm">Architecture cloud-ready avec stockage NoSQL et API REST pour une scalabilité optimale en production.</p></div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-8">
+                    <span class="tech-pill"><i class="fab fa-python text-emerald-600"></i> Python 3.10</span>
+                    <span class="tech-pill"><i class="fas fa-flask text-teal-600"></i> Flask</span>
+                    <span class="tech-pill"><i class="fas fa-leaf text-emerald-600"></i> MongoDB</span>
+                    <span class="tech-pill"><i class="fas fa-brain text-teal-600"></i> scikit-learn</span>
+                    <span class="tech-pill"><i class="fas fa-table text-emerald-600"></i> pandas</span>
+                </div>
+            </div>
+            <div class="scroll-reveal bg-gradient-to-br from-slate-50 to-emerald-50 rounded-2xl border-2 border-emerald-100 p-6 font-mono text-sm shadow-xl shadow-emerald-100">
+                <div class="flex items-center space-x-2 mb-5">
+                    <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span class="text-slate-400 text-xs ml-2 font-sans">immo_pro_ml.py</span>
+                </div>
+                <div class="space-y-1 text-xs leading-relaxed">
+                    <p><span class="text-blue-600">from</span> <span class="text-emerald-700">sklearn.cluster</span> <span class="text-blue-600">import</span> KMeans</p>
+                    <p><span class="text-blue-600">from</span> <span class="text-emerald-700">sklearn.ensemble</span> <span class="text-blue-600">import</span> IsolationForest</p>
+                    <p class="text-slate-400 mt-2"># 302K transactions DVF 2024</p>
+                    <p><span class="text-purple-600">kmeans</span> = KMeans(<span class="text-amber-600">n_clusters</span>=<span class="text-orange-500">6</span>)</p>
+                    <p><span class="text-purple-600">kmeans</span>.<span class="text-blue-600">fit</span>(df_reference)</p>
+                    <p class="text-slate-400 mt-2"># Score silhouette : 0.260 ✓</p>
+                    <p><span class="text-slate-700">df</span>[<span class="text-emerald-700">'cluster_kmeans'</span>] = <span class="text-purple-600">kmeans</span>.<span class="text-blue-600">predict</span>(X)</p>
+                    <p class="text-slate-400 mt-2"># Détection opportunités</p>
+                    <p><span class="text-purple-600">iso</span> = IsolationForest(<span class="text-amber-600">contamination</span>=<span class="text-orange-500">0.02</span>)</p>
+                    <p><span class="text-slate-700">anomalies</span> = <span class="text-purple-600">iso</span>.<span class="text-blue-600">predict</span>(X_scaled)</p>
+                    <p class="text-slate-400 mt-2"># Résultat :</p>
+                    <p><span class="text-blue-600">print</span>(<span class="text-emerald-600">"✅ Opportunités détectées !"</span>)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section py-24">
+    <div class="max-w-3xl mx-auto px-4 text-center scroll-reveal">
+        <div class="inline-block p-5 bg-white/10 rounded-full mb-8 float-icon">
+            <i class="fas fa-home text-6xl text-white"></i>
+        </div>
+        <h2 class="text-5xl font-extrabold text-white mb-6">Prêt à analyser le marché ?</h2>
+        <p class="text-xl text-emerald-100 mb-10 leading-relaxed">Créez votre compte gratuitement et accédez immédiatement à toutes les fonctionnalités d'ImmoPRO.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="{{ url_for('register') }}" class="w-full sm:w-auto px-10 py-4 text-lg font-bold bg-white text-emerald-700 rounded-2xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-2xl shadow-emerald-900/30">
+                <i class="fas fa-user-plus mr-2"></i>Créer mon compte
+            </a>
+            <a href="{{ url_for('login') }}" class="w-full sm:w-auto px-10 py-4 text-lg font-semibold text-white border-2 border-white/40 hover:border-white hover:bg-white/10 rounded-2xl transition-all duration-200">
+                <i class="fas fa-sign-in-alt mr-2"></i>J'ai déjà un compte
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gradient-to-r from-slate-900 to-slate-800 border-t border-emerald-500/20 py-10">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <div class="flex items-center justify-center space-x-3 mb-3">
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-500 p-2 rounded-xl">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <span class="text-xl font-bold text-white">ImmoPRO</span>
+        </div>
+        <p class="text-gray-400 text-sm">&copy; 2026 ImmoPRO — Données DVF 2025 — CY TECH ING3 FINTECH</p>
+        <p class="text-gray-600 text-xs mt-1">Plateforme d'analyse immobilière basée sur les données DVF (Demandes de Valeurs Foncières)</p>
+    </div>
+</footer>
+
+</body>
+</html>

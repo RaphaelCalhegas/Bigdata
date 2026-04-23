@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Profils des Segments - Clustering Immo{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12 fade-in">
+        <h1
+            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            Profils des 6 Segments de Marché
+        </h1>
+        <p class="text-xl text-gray-600">Découvrez les caractéristiques détaillées de chaque cluster identifié par
+            K-Means</p>
+    </div>
+
+    <!-- Explication générale -->
+    <div class="card hover-lift mb-8">
+        <div class="card-body">
+            <div class="flex items-start space-x-4">
+                <i class="fas fa-info-circle text-5xl text-emerald-600 mt-1"></i>
+                <div>
+                    <h2 class="text-2xl font-bold mb-4">Comment fonctionnent les segments ?</h2>
+                    <p class="text-gray-700 text-lg leading-relaxed mb-4">
+                        Les segments (clusters) sont créés automatiquement par l'algorithme K-Means qui analyse
+                        <strong>302,016 transactions DVF 2024</strong>.
+                    </p>
+                    <p class="text-gray-700 text-lg leading-relaxed mb-4">
+                        L'algorithme regroupe les biens similaires selon <strong>5 critères principaux</strong> :
+                    </p>
+                    <ul class="grid md:grid-cols-2 gap-3 text-gray-700 text-lg">
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-euro-sign text-emerald-600"></i>
+                            <span>Prix au m² (niveau de marché)</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-home text-emerald-600"></i>
+                            <span>Surface habitable (typologie du bien)</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-door-open text-emerald-600"></i>
+                            <span>Nombre de pièces (T1, T2, T3...)</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-map-marker-alt text-emerald-600"></i>
+                            <span>Zone géographique (latitude/longitude)</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-star text-emerald-600"></i>
+                            <span>Standing relatif (ratio prix/marché local)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille des clusters -->
+    <div class="grid lg:grid-cols-2 gap-6" id="clustersGrid">
+        <!-- Les clusters seront chargés ici via JavaScript -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Couleurs pour chaque cluster
+    const clusterColors = {
+        0: { primary: '#10b981', light: '#d1fae5', dark: '#059669' },
+        1: { primary: '#0891b2', light: '#cffafe', dark: '#0e7490' },
+        2: { primary: '#14b8a6', light: '#ccfbf1', dark: '#0f766e' },
+        3: { primary: '#22c55e', light: '#dcfce7', dark: '#16a34a' },
+        4: { primary: '#06b6d4', light: '#cffafe', dark: '#0891b2' },
+        5: { primary: '#059669', light: '#d1fae5', dark: '#047857' }
+    };
+
+    async function loadClusters() {
+        const grid = document.getElementById('clustersGrid');
+
+        for (let i = 0; i < 6; i++) {
+            try {
+                const response = await fetch(`/api/cluster-info/${i}`);
+                const data = await response.json();
+
+                const colors = clusterColors[i];
+
+                const card = document.createElement('div');
+                card.className = 'card hover-lift';
+                card.style.borderLeft = `4px solid ${colors.primary}`;
+
+                card.innerHTML = `
+                <div class="card-header" style="background: linear-gradient(135deg, ${colors.light} 0%, white 100%);">
+                    <h3 class="text-2xl font-bold flex items-center space-x-3">
+                        <span class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" 
+                              style="background: ${colors.primary};">${i}</span>
+                        <span style="color: ${colors.dark};">${data.name}</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Description -->
+                    <p class="text-gray-700 text-base leading-relaxed mb-6">${data.description}</p>
+                    
+                    <!-- Stats clés -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="p-4 rounded-lg" style="background-color: ${colors.light};">
+                            <p class="text-sm text-gray-600 mb-1">Prix moyen/m²</p>
+                            <p class="text-2xl font-bold" style="color: ${colors.dark};">
+                                ${data.stats.prix_m2_moyen?.toLocaleString('fr-FR')} €
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-lg" style="background-color: ${colors.light};">
+                            <p class="text-sm text-gray-600 mb-1">Surface moyenne</p>
+                            <p class="text-2xl font-bold" style="color: ${colors.dark};">
+                                ${data.stats.surface_moyenne?.toFixed(1)} m²
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-lg" style="background-color: ${colors.light};">
+                            <p class="text-sm text-gray-600 mb-1">Valeur moyenne</p>
+                            <p class="text-2xl font-bold" style="color: ${colors.dark};">
+                                ${(data.stats.valeur_moyenne / 1000).toFixed(0)}K €
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-lg" style="background-color: ${colors.light};">
+                            <p class="text-sm text-gray-600 mb-1">Nombre de biens</p>
+                            <p class="text-2xl font-bold" style="color: ${colors.dark};">
+                                ${data.stats.nb_biens?.toLocaleString('fr-FR')}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Détails -->
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-map-marked-alt mt-1" style="color: ${colors.primary};"></i>
+                            <div>
+                                <strong>Zone :</strong> ${data.stats.zone_principale}
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-map-pin mt-1" style="color: ${colors.primary};"></i>
+                            <div>
+                                <strong>Départements :</strong> ${data.stats.departements_top?.join(', ')}
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-star mt-1" style="color: ${colors.primary};"></i>
+                            <div>
+                                <strong>Standing :</strong> ${data.stats.standing_dominant}
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-door-open mt-1" style="color: ${colors.primary};"></i>
+                            <div>
+                                <strong>Pièces :</strong> ${data.stats.pieces_moyennes?.toFixed(1)} en moyenne
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Badge pourcentage -->
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold" 
+                              style="background-color: ${colors.light}; color: ${colors.dark};">
+                            <i class="fas fa-chart-pie mr-2"></i>
+                            ${data.stats.pct_total}% du marché total
+                        </span>
+                    </div>
+                </div>
+            `;
+
+                grid.appendChild(card);
+
+            } catch (error) {
+                console.error(`Erreur lors du chargement du cluster ${i}:`, error);
+            }
+        }
+    }
+
+    // Charger au chargement de la page
+    document.addEventListener('DOMContentLoaded', loadClusters);
+</script>
+{% endblock %}

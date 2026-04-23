@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}ImmoPRO - Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+    <!-- Bienvenue -->
+    <div class="text-center mb-16 scroll-reveal">
+        <div class="inline-block p-6 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-8 hover:scale-110 transition-transform duration-300">
+            <i class="fas fa-home text-8xl text-emerald-600"></i>
+        </div>
+        <h1 class="text-6xl font-extrabold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent gradient-animate" style="background-size: 200% auto;">
+            Bonjour, {{ current_user.username }} 
+        </h1>
+        <p class="text-xl text-gray-500 max-w-2xl mx-auto">
+            Que souhaitez-vous analyser aujourd'hui ?
+        </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+
+        <a href="/estimation" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-calculator text-5xl text-emerald-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Estimation IA</h3>
+                <p class="text-gray-500 text-sm">Estimez le prix de n'importe quel bien en quelques secondes grâce au K-Means</p>
+                <div class="mt-4 inline-flex items-center text-emerald-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Estimer un bien <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="/analyse-marche" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chart-line text-5xl text-teal-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Analyse de Marché</h3>
+                <p class="text-gray-500 text-sm">Statistiques détaillées par département avec insights et tendances</p>
+                <div class="mt-4 inline-flex items-center text-teal-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Analyser le marché <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="/cartographie" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-map-marked-alt text-5xl text-emerald-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Cartographie</h3>
+                <p class="text-gray-500 text-sm">Visualisez les transactions et clusters sur une carte interactive</p>
+                <div class="mt-4 inline-flex items-center text-emerald-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Voir la carte <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="/opportunites" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-gem text-5xl text-teal-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Opportunités IA</h3>
+                <p class="text-gray-500 text-sm">Détectez les meilleures affaires grâce à l'Isolation Forest</p>
+                <div class="mt-4 inline-flex items-center text-teal-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Trouver des opportunités <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="/similaires" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-search text-5xl text-rose-500"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Biens Comparables</h3>
+                <p class="text-gray-500 text-sm">Trouvez les transactions les plus proches de votre bien</p>
+                <div class="mt-4 inline-flex items-center text-rose-500 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Chercher des comparables <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="/clusters" class="card hover-lift glow group">
+            <div class="card-body text-center">
+                <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-layer-group text-5xl text-purple-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Segments de Marché</h3>
+                <p class="text-gray-500 text-sm">Explorez les 6 segments identifiés par l'algorithme K-Means</p>
+                <div class="mt-4 inline-flex items-center text-purple-600 font-semibold group-hover:translate-x-2 transition-transform text-sm">
+                    Voir les segments <i class="fas fa-arrow-right ml-2"></i>
+                </div>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- Stats -->
+    <div class="card mb-16 scroll-reveal" style="animation-delay: 0.2s;">
+        <div class="card-body">
+            <div class="grid md:grid-cols-4 gap-8 text-center">
+                <div>
+                    <div class="stat-value mb-2">302K+</div>
+                    <div class="stat-label">Transactions analysées</div>
+                </div>
+                <div>
+                    <div class="stat-value mb-2">13K+</div>
+                    <div class="stat-label">Communes couvertes</div>
+                </div>
+                <div>
+                    <div class="stat-value mb-2">6</div>
+                    <div class="stat-label">Clusters de marché</div>
+                </div>
+                <div>
+                    <div class="stat-value mb-2">2024</div>
+                    <div class="stat-label">Données DVF à jour</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA profil -->
+    <div class="card bg-gradient-to-br from-emerald-600 to-teal-600 text-white text-center scroll-reveal" style="animation-delay: 0.3s;">
+        <div class="card-body py-12">
+            <h2 class="text-3xl font-bold mb-4">Consultez vos recommandations personnalisées</h2>
+            <p class="text-lg mb-8 text-emerald-50">Votre historique de recherche génère des suggestions adaptées à votre profil</p>
+            <a href="/profile" class="btn bg-white text-emerald-600 hover:bg-emerald-50 text-lg px-10 py-4 inline-flex items-center space-x-3 shadow-2xl">
+                <i class="fas fa-user-circle text-2xl"></i>
+                <span class="font-bold">Voir mon profil</span>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    @keyframes gradientShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .gradient-animate { animation: gradientShift 3s ease infinite; }
+</style>
+{% endblock %}
