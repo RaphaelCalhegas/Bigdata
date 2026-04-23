@@ -38,12 +38,12 @@ def fit_isolation_forest(df, contamination=0.02):
     scaler   = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Réduit à 30 estimateurs pour économiser RAM sur Render gratuit
+    # 30 estimateurs pour économiser RAM sur Render gratuit
     model = IsolationForest(
         n_estimators=30,
         contamination=contamination,
         random_state=42,
-        n_jobs=1          # n_jobs=1 pour éviter surcharge mémoire
+        n_jobs=1
     )
     model.fit(X_scaled)
 
@@ -109,9 +109,10 @@ def compute_investment_score(df):
 def detect_opportunities(df_reference, contamination=0.02, max_ratio=0.85, zone_filter='all', top_n=50):
     """
     Pipeline complet de détection d'opportunités.
+    L'échantillonnage et le filtrage prix sont faits en amont dans MongoDB.
 
     Args:
-        df_reference: DataFrame de référence
+        df_reference: DataFrame déjà échantillonné depuis MongoDB
         contamination: Taux d'anomalies
         max_ratio:     Ratio max accepté (ex: 0.85 = -15% décote)
         zone_filter:   Filtre géographique ('all' ou code zone)
@@ -120,23 +121,16 @@ def detect_opportunities(df_reference, contamination=0.02, max_ratio=0.85, zone_
     Returns:
         dict avec statistiques et opportunités
     """
-    # Echantillonnage réduit pour économiser RAM sur Render gratuit
-    sample_size = min(3000, len(df_reference))
-    df_sample   = df_reference.sample(sample_size, random_state=42)
-
-    # Filtrage des prix aberrants (successions, ventes forcées, erreurs DVF)
-    df_sample = df_sample[
-        (df_sample['valeur_fonciere'] >= 50000) &
-        (df_sample['prix_m2']         >= 500)
-    ]
+    # L'échantillonnage et le filtrage sont déjà faits dans app.py via MongoDB
+    df_sample = df_reference.copy()
 
     # 1. Application Isolation Forest
     df_if = fit_isolation_forest(df_sample, contamination)
 
     # 2. Filtrage des candidats
     candidates = df_if[
-        (df_if['anomaly_label']      == -1) &
-        (df_if['ratio_prix_marche']  <  max_ratio)
+        (df_if['anomaly_label']     == -1) &
+        (df_if['ratio_prix_marche'] <  max_ratio)
     ].copy()
 
     # Filtre zone si demandé

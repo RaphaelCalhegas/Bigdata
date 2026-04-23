@@ -404,8 +404,8 @@ def api_opportunities():
     try:
         data = request.get_json()
         contamination = float(data.get("contamination", 0.02))
-        max_ratio = float(data.get("max_ratio", 0.85))
-        zone_filter = data.get("zone_filter", "all")
+        max_ratio     = float(data.get("max_ratio", 0.85))
+        zone_filter   = data.get("zone_filter", "all")
 
         if not (0.01 <= contamination <= 0.10):
             return jsonify({
@@ -413,7 +413,19 @@ def api_opportunities():
                 "error": "La contamination doit être comprise entre 0.01 et 0.10"
             }), 400
 
-        docs = list(data_manager.db["properties"].find({}, {"_id": 0}))
+        # Echantillonnage directement dans MongoDB — évite de charger 346K lignes
+        docs = list(data_manager.db["properties"].aggregate([
+            {"$match": {
+                "valeur_fonciere": {"$gte": 50000},
+                "prix_m2":         {"$gte": 500}
+            }},
+            {"$sample": {"size": 5000}},
+            {"$project": {"_id": 0}}
+        ]))
+
+        if not docs:
+            return jsonify({"success": False, "error": "Aucune donnée disponible"}), 500
+
         df_reference = pd.DataFrame(docs)
 
         result = detect_opportunities(
@@ -427,7 +439,7 @@ def api_opportunities():
         if current_user.is_authenticated:
             save_search(current_user.id, "opportunites", {
                 "contamination": contamination,
-                "zone_filter": zone_filter
+                "zone_filter":   zone_filter
             })
 
         return jsonify(result)
