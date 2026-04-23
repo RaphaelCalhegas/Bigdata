@@ -38,9 +38,9 @@ def fit_isolation_forest(df, contamination=0.02):
     scaler   = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Réduit à 50 estimateurs pour économiser RAM sur Render gratuit
+    # Réduit à 30 estimateurs pour économiser RAM sur Render gratuit
     model = IsolationForest(
-        n_estimators=50,
+        n_estimators=30,
         contamination=contamination,
         random_state=42,
         n_jobs=1          # n_jobs=1 pour éviter surcharge mémoire
@@ -121,7 +121,7 @@ def detect_opportunities(df_reference, contamination=0.02, max_ratio=0.85, zone_
         dict avec statistiques et opportunités
     """
     # Echantillonnage réduit pour économiser RAM sur Render gratuit
-    sample_size = min(10000, len(df_reference))
+    sample_size = min(3000, len(df_reference))
     df_sample   = df_reference.sample(sample_size, random_state=42)
 
     # Filtrage des prix aberrants (successions, ventes forcées, erreurs DVF)
