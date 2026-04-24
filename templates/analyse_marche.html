@@ -167,26 +167,67 @@
     <!-- Indicateurs Clés -->
     <div id="kpiSection" class="hidden fade-in">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Transactions -->
             <div class="stat-card text-center">
                 <i class="fas fa-file-invoice text-5xl text-blue-600 mb-4"></i>
-                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Transactions</p>
+                <div class="flex items-center justify-center space-x-1 mb-2">
+                    <p class="text-sm text-gray-600 font-semibold uppercase">Transactions</p>
+                    <button class="info-btn" data-info="transactions">
+                        <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                    </button>
+                </div>
+                <div class="info-box hidden" id="info-transactions">
+                    Nombre total de ventes d'appartements enregistrées dans ce département sur l'année 2025, issues des données officielles DVF (Demandes de Valeurs Foncières) de data.gouv.fr.
+                </div>
                 <h3 class="text-4xl font-bold text-gray-800" id="kpiTransactions">-</h3>
             </div>
+
+            <!-- Prix m² Médian -->
             <div class="stat-card text-center">
                 <i class="fas fa-euro-sign text-5xl text-green-600 mb-4"></i>
-                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Prix m² Médian</p>
+                <div class="flex items-center justify-center space-x-1 mb-2">
+                    <p class="text-sm text-gray-600 font-semibold uppercase">Prix m² Médian</p>
+                    <button class="info-btn" data-info="prix-median">
+                        <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                    </button>
+                </div>
+                <div class="info-box hidden" id="info-prix-median">
+                    Prix médian au m² calculé sur l'ensemble des transactions du département. La médiane signifie que 50% des biens ont été vendus en dessous de ce prix et 50% au-dessus. Plus robuste que la moyenne car insensible aux valeurs extrêmes.
+                </div>
                 <h3 class="text-4xl font-bold text-gray-800" id="kpiPrixMedian">-</h3>
             </div>
+
+            <!-- Surface Moyenne -->
             <div class="stat-card text-center">
                 <i class="fas fa-expand-arrows-alt text-5xl text-purple-600 mb-4"></i>
-                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Surface Moyenne</p>
+                <div class="flex items-center justify-center space-x-1 mb-2">
+                    <p class="text-sm text-gray-600 font-semibold uppercase">Surface Moyenne</p>
+                    <button class="info-btn" data-info="surface">
+                        <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                    </button>
+                </div>
+                <div class="info-box hidden" id="info-surface">
+                    Surface habitable moyenne des appartements vendus dans ce département en 2025. Correspond à la surface réelle bâtie déclarée dans les actes de vente, hors caves, garages et annexes.
+                </div>
                 <h3 class="text-4xl font-bold text-gray-800" id="kpiSurface">-</h3>
             </div>
+
+            <!-- Prix Moyen -->
             <div class="stat-card text-center">
                 <i class="fas fa-coins text-5xl text-orange-600 mb-4"></i>
-                <p class="text-sm text-gray-600 font-semibold uppercase mb-2">Prix Moyen</p>
+                <div class="flex items-center justify-center space-x-1 mb-2">
+                    <p class="text-sm text-gray-600 font-semibold uppercase">Prix Moyen</p>
+                    <button class="info-btn" data-info="prix-moyen">
+                        <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                    </button>
+                </div>
+                <div class="info-box hidden" id="info-prix-moyen">
+                    Prix de vente moyen total des appartements du département. Contrairement à la médiane, la moyenne est sensible aux transactions exceptionnelles (très haut ou très bas de gamme) qui peuvent la faire varier.
+                </div>
                 <h3 class="text-4xl font-bold text-gray-800" id="kpiPrixMoyen">-</h3>
             </div>
+
         </div>
 
         <!-- Graphiques -->
@@ -226,9 +267,39 @@
                             <tr>
                                 <th>Rang</th>
                                 <th>Commune</th>
-                                <th>Nombre de Transactions</th>
-                                <th>Prix m² Médian</th>
-                                <th>Surface Moyenne</th>
+                                <th>
+                                    <span class="flex items-center space-x-1">
+                                        <span>Nb Transactions</span>
+                                        <button class="info-btn" data-info="col-transactions">
+                                            <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                        </button>
+                                    </span>
+                                    <div class="info-box hidden" id="info-col-transactions">
+                                        Nombre de ventes d'appartements enregistrées dans cette commune en 2025. Indique l'activité et la liquidité du marché local.
+                                    </div>
+                                </th>
+                                <th>
+                                    <span class="flex items-center space-x-1">
+                                        <span>Prix m² Médian</span>
+                                        <button class="info-btn" data-info="col-prix">
+                                            <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                        </button>
+                                    </span>
+                                    <div class="info-box hidden" id="info-col-prix">
+                                        Prix médian au m² calculé sur toutes les transactions de la commune. Référence utilisée pour évaluer le positionnement d'un bien par rapport au marché local.
+                                    </div>
+                                </th>
+                                <th>
+                                    <span class="flex items-center space-x-1">
+                                        <span>Surface Moyenne</span>
+                                        <button class="info-btn" data-info="col-surface">
+                                            <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                        </button>
+                                    </span>
+                                    <div class="info-box hidden" id="info-col-surface">
+                                        Surface habitable moyenne des appartements vendus dans cette commune. Permet de comprendre la typologie des biens qui s'y échangent.
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -277,6 +348,31 @@
     </div>
 
 </div>
+
+<style>
+    .info-box {
+        background:    #1e293b;
+        color:         white;
+        font-size:     0.72rem;
+        border-radius: 0.5rem;
+        padding:       0.6rem 0.75rem;
+        margin:        0.4rem auto 0.6rem;
+        max-width:     220px;
+        line-height:   1.5;
+        text-align:    left;
+        font-weight:   normal;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    .info-btn {
+        background: none;
+        border:     none;
+        cursor:     pointer;
+        padding:    0;
+        line-height: 1;
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}

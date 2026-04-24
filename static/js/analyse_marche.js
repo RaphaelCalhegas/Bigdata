@@ -13,13 +13,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btnAnalyser.addEventListener('click', async function () {
         const codeDept = selectDept.value;
-
         if (!codeDept) {
             alert('Veuillez sélectionner un département');
             return;
         }
-
         await analyserDepartement(codeDept);
+    });
+
+    // -----------------------------------------------------------------------
+    // INFOBULLES — Clic sur ? pour afficher/masquer
+    // -----------------------------------------------------------------------
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.info-btn');
+
+        if (btn) {
+            e.stopPropagation();
+            const id  = btn.dataset.info;
+            const box = document.getElementById(`info-${id}`);
+            if (!box) return;
+
+            // Ferme toutes les autres infobulles
+            document.querySelectorAll('.info-box').forEach(b => {
+                if (b !== box) b.classList.add('hidden');
+            });
+
+            // Toggle celle-ci
+            box.classList.toggle('hidden');
+        } else {
+            // Clic ailleurs → ferme toutes
+            document.querySelectorAll('.info-box').forEach(b => b.classList.add('hidden'));
+        }
     });
 });
 
@@ -65,9 +88,7 @@ function displayKPIs(stats) {
 }
 
 function displayCharts(stats) {
-    // Chart 1 : Distribution des prix
     const ctxPrix = document.getElementById('chartPrixDistribution');
-
     if (chartPrixDistribution) chartPrixDistribution.destroy();
 
     chartPrixDistribution = new Chart(ctxPrix, {
@@ -75,13 +96,8 @@ function displayCharts(stats) {
         data: {
             labels: ['Q1 (25%)', 'Médiane', 'Moyenne', 'Q3 (75%)'],
             datasets: [{
-                label: 'Prix au m² (€)',
-                data: [
-                    stats.prix_m2_q25,
-                    stats.prix_m2_median,
-                    stats.prix_m2_mean,
-                    stats.prix_m2_q75
-                ],
+                label:           'Prix au m² (€)',
+                data:            [stats.prix_m2_q25, stats.prix_m2_median, stats.prix_m2_mean, stats.prix_m2_q75],
                 backgroundColor: [
                     'rgba(54, 162, 235, 0.6)',
                     'rgba(75, 192, 192, 0.6)',
@@ -104,17 +120,13 @@ function displayCharts(stats) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        callback: value => value.toLocaleString('fr-FR') + ' €'
-                    }
+                    ticks: { callback: value => value.toLocaleString('fr-FR') + ' €' }
                 }
             }
         }
     });
 
-    // Chart 2 : Répartition Standing
     const ctxStanding = document.getElementById('chartStanding');
-
     if (chartStanding) chartStanding.destroy();
 
     const standingData = stats.repartition_standing || {};
@@ -126,7 +138,7 @@ function displayCharts(stats) {
         data: {
             labels: labels,
             datasets: [{
-                data: values,
+                data:            values,
                 backgroundColor: [
                     'rgba(220, 53, 69, 0.7)',
                     'rgba(255, 193, 7, 0.7)',
@@ -233,19 +245,10 @@ function renderPagination() {
     }
 
     document.getElementById('btnPrevPage').onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderPage(currentPage);
-            renderPagination();
-        }
+        if (currentPage > 1) { currentPage--; renderPage(currentPage); renderPagination(); }
     };
-
     document.getElementById('btnNextPage').onclick = () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderPage(currentPage);
-            renderPagination();
-        }
+        if (currentPage < totalPages) { currentPage++; renderPage(currentPage); renderPagination(); }
     };
 }
 
