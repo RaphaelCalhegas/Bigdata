@@ -22,7 +22,8 @@ from utils.db import get_db, init_indexes
 from utils.auth import User, register_user, login_user_auth, bcrypt, update_user_preferences
 from utils.recommendations import (
     save_search, get_search_history,
-    generate_recommendations, save_recommendations, get_recommendations
+    generate_recommendations, save_recommendations, get_recommendations,
+    get_user_profile_summary
 )
 
 # ---------------------------------------------------------------------------
@@ -32,7 +33,6 @@ from utils.recommendations import (
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 
-# Initialisation des extensions
 bcrypt.init_app(app)
 
 login_manager = LoginManager(app)
@@ -43,8 +43,8 @@ def inject_user():
     return dict(current_user=current_user)
 
 
-login_manager.login_view = "login"
-login_manager.login_message = "Veuillez vous connecter pour accéder à cette page."
+login_manager.login_view         = "login"
+login_manager.login_message      = "Veuillez vous connecter pour accéder à cette page."
 login_manager.login_message_category = "warning"
 
 
@@ -77,7 +77,7 @@ def register():
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
-        email = request.form.get("email", "").strip()
+        email    = request.form.get("email", "").strip()
         password = request.form.get("password", "")
 
         result = register_user(username, email, password)
@@ -99,7 +99,7 @@ def login():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        email = request.form.get("email", "").strip()
+        email    = request.form.get("email", "").strip()
         password = request.form.get("password", "")
 
         result = login_user_auth(email, password)
@@ -128,13 +128,15 @@ def logout():
 @login_required
 def profile():
     """Page de profil utilisateur avec historique et recommandations."""
-    history = get_search_history(current_user.id, limit=20)
+    history         = get_search_history(current_user.id, limit=20)
     recommendations = get_recommendations(current_user.id)
+    profile_summary = get_user_profile_summary(current_user.id)
     return render_template(
         "profile.html",
         user=current_user,
         history=history,
-        recommendations=recommendations
+        recommendations=recommendations,
+        profile_summary=profile_summary
     )
 
 
@@ -145,10 +147,10 @@ def api_update_preferences():
     try:
         data = request.get_json()
         preferences = {
-            "zones_favorites": data.get("zones_favorites", []),
-            "budget_min": data.get("budget_min"),
-            "budget_max": data.get("budget_max"),
-            "surface_min": data.get("surface_min"),
+            "zones_favorites":   data.get("zones_favorites", []),
+            "budget_min":        data.get("budget_min"),
+            "budget_max":        data.get("budget_max"),
+            "surface_min":       data.get("surface_min"),
             "nb_pieces_prefere": data.get("nb_pieces_prefere")
         }
         success = update_user_preferences(current_user.id, preferences)
@@ -164,7 +166,23 @@ def api_refresh_recommendations():
     try:
         recommendations = generate_recommendations(current_user.id, data_manager)
         save_recommendations(current_user.id, recommendations)
-        return jsonify({"success": True, "recommendations": recommendations})
+        profile_summary = get_user_profile_summary(current_user.id)
+        return jsonify({
+            "success":         True,
+            "recommendations": recommendations,
+            "profile_summary": profile_summary
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/user/profile-summary")
+@login_required
+def api_user_profile_summary():
+    """Retourne le résumé du profil comportemental de l'utilisateur."""
+    try:
+        summary = get_user_profile_summary(current_user.id)
+        return jsonify({"success": True, "summary": summary})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -231,9 +249,9 @@ def opportunites():
 def api_estimate():
     """API pour l'estimation de prix."""
     try:
-        data = request.get_json()
-        surface = float(data.get("surface", 0))
-        nb_pieces = float(data.get("nb_pieces", 0))
+        data         = request.get_json()
+        surface      = float(data.get("surface", 0))
+        nb_pieces    = float(data.get("nb_pieces", 0))
         code_commune = data.get("code_commune", "").strip()
 
         if not code_commune or surface <= 0:
@@ -244,9 +262,9 @@ def api_estimate():
         if current_user.is_authenticated and result.get("success"):
             save_search(current_user.id, "estimation", {
                 "code_commune": code_commune,
-                "surface": surface,
-                "nb_pieces": nb_pieces,
-                "prix_estime": result.get("prix_estime")
+                "surface":      surface,
+                "nb_pieces":    nb_pieces,
+                "prix_estime":  result.get("prix_estime")
             })
 
         return jsonify(result)
@@ -289,9 +307,9 @@ def api_top_communes(code_dept):
         for code_commune, count in top_communes.items():
             commune_data = dept_data[dept_data["code_commune"] == code_commune]
             results.append({
-                "code_commune": str(code_commune),
+                "code_commune":    str(code_commune),
                 "nb_transactions": int(count),
-                "prix_m2_median": float(round(commune_data["prix_m2"].median(), 0)),
+                "prix_m2_median":  float(round(commune_data["prix_m2"].median(), 0)),
                 "surface_moyenne": float(round(commune_data["surface_reelle_bati"].mean(), 1))
             })
 
@@ -306,9 +324,9 @@ def api_cluster_info(cluster_id):
     """API pour obtenir les informations détaillées d'un cluster."""
     try:
         return jsonify({
-            "name": get_cluster_name(cluster_id),
-            "description": get_cluster_description(cluster_id),
-            "stats": get_cluster_stats(cluster_id),
+            "name":                get_cluster_name(cluster_id),
+            "description":         get_cluster_description(cluster_id),
+            "stats":               get_cluster_stats(cluster_id),
             "general_explanation": get_cluster_explanation()
         })
     except Exception as e:
@@ -320,21 +338,15 @@ def api_map_data():
     """API pour les données de la carte (échantillon)."""
     try:
         docs = list(data_manager.db["properties"].aggregate([
-            {
-                "$sample": {
-                    "size": 5000
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "latitude": 1,
-                    "longitude": 1,
-                    "prix_m2": 1,
-                    "cluster_kmeans": 1,
-                    "code_commune": 1
-                }
-            }
+            {"$sample": {"size": 5000}},
+            {"$project": {
+                "_id":           0,
+                "latitude":      1,
+                "longitude":     1,
+                "prix_m2":       1,
+                "cluster_kmeans": 1,
+                "code_commune":  1
+            }}
         ]))
 
         if not docs:
@@ -343,11 +355,11 @@ def api_map_data():
         sample = pd.DataFrame(docs)
 
         data = {
-            "latitudes": sample["latitude"].tolist(),
+            "latitudes":  sample["latitude"].tolist(),
             "longitudes": sample["longitude"].tolist(),
-            "prix_m2": sample["prix_m2"].tolist(),
-            "clusters": sample["cluster_kmeans"].tolist() if "cluster_kmeans" in sample.columns else [],
-            "communes": sample["code_commune"].tolist()
+            "prix_m2":    sample["prix_m2"].tolist(),
+            "clusters":   sample["cluster_kmeans"].tolist() if "cluster_kmeans" in sample.columns else [],
+            "communes":   sample["code_commune"].tolist()
         }
 
         return jsonify(data)
@@ -360,9 +372,9 @@ def api_map_data():
 def api_find_similar():
     """API pour trouver des biens similaires."""
     try:
-        data = request.get_json()
-        surface = float(data.get("surface", 0))
-        nb_pieces = float(data.get("nb_pieces", 0))
+        data         = request.get_json()
+        surface      = float(data.get("surface", 0))
+        nb_pieces    = float(data.get("nb_pieces", 0))
         code_commune = data.get("code_commune", "").strip()
 
         if not code_commune or surface <= 0:
@@ -376,20 +388,20 @@ def api_find_similar():
         for _, row in similar_df.iterrows():
             results.append({
                 "code_commune": row.get("code_commune", ""),
-                "prix": float(row.get("valeur_fonciere", 0)),
-                "surface": float(row.get("surface_reelle_bati", 0)),
-                "nb_pieces": float(row.get("nombre_pieces_principales", 0)),
-                "prix_m2": float(row.get("prix_m2", 0)),
-                "standing": row.get("standing_relative", "N/A"),
-                "latitude": float(row.get("latitude", 0)),
-                "longitude": float(row.get("longitude", 0))
+                "prix":         float(row.get("valeur_fonciere", 0)),
+                "surface":      float(row.get("surface_reelle_bati", 0)),
+                "nb_pieces":    float(row.get("nombre_pieces_principales", 0)),
+                "prix_m2":      float(row.get("prix_m2", 0)),
+                "standing":     row.get("standing_relative", "N/A"),
+                "latitude":     float(row.get("latitude", 0)),
+                "longitude":    float(row.get("longitude", 0))
             })
 
         if current_user.is_authenticated:
             save_search(current_user.id, "similaires", {
                 "code_commune": code_commune,
-                "surface": surface,
-                "nb_pieces": nb_pieces
+                "surface":      surface,
+                "nb_pieces":    nb_pieces
             })
 
         return jsonify({"success": True, "results": results})
@@ -402,7 +414,7 @@ def api_find_similar():
 def api_opportunities():
     """API pour détecter les opportunités d'investissement."""
     try:
-        data = request.get_json()
+        data          = request.get_json()
         contamination = float(data.get("contamination", 0.02))
         max_ratio     = float(data.get("max_ratio", 0.85))
         zone_filter   = data.get("zone_filter", "all")
@@ -410,10 +422,10 @@ def api_opportunities():
         if not (0.01 <= contamination <= 0.10):
             return jsonify({
                 "success": False,
-                "error": "La contamination doit être comprise entre 0.01 et 0.10"
+                "error":   "La contamination doit être comprise entre 0.01 et 0.10"
             }), 400
 
-        # Echantillonnage directement dans MongoDB — évite de charger 346K lignes
+        # Échantillonnage directement dans MongoDB — évite de charger 346K lignes en RAM
         docs = list(data_manager.db["properties"].aggregate([
             {"$match": {
                 "valeur_fonciere": {"$gte": 50000},
@@ -452,10 +464,8 @@ def api_opportunities():
 def api_search_communes():
     """API pour la recherche de communes."""
     query = request.args.get("q", "")
-
     if len(query) < 2:
         return jsonify([])
-
     results = data_manager.search_communes(query, limit=15)
     return jsonify(results)
 

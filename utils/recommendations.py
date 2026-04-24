@@ -1,27 +1,44 @@
 """
 Moteur de recommandations personnalisées basé sur l'historique de recherche.
+
+Pipeline d'événements asynchrones :
+  1. L'utilisateur effectue une recherche → save_search() enregistre l'événement
+  2. trigger_profile_update() lance la mise à jour en arrière-plan (Thread daemon)
+  3. build_user_profile() recalcule le profil depuis l'historique MongoDB
+  4. generate_recommendations() produit des recommandations personnalisées
+  5. save_recommendations() met à jour MongoDB silencieusement
+  → Le profil utilisateur est toujours à jour sans action manuelle
 """
+import threading
 from datetime import datetime
-from bson import ObjectId
+from collections import Counter
 from utils.db import get_collections
 
 
+# ---------------------------------------------------------------------------
+# ÉVÉNEMENTS — Sauvegarde des actions utilisateur
+# ---------------------------------------------------------------------------
+
 def save_search(user_id: str, search_type: str, search_data: dict) -> None:
     """
-    Sauvegarde une recherche utilisateur en base.
+    Sauvegarde une recherche utilisateur et déclenche automatiquement
+    la mise à jour du profil en arrière-plan.
 
     Args:
         user_id     : Identifiant de l'utilisateur
-        search_type : Type de recherche ('estimation', 'similaires', 'opportunites', 'marche')
-        search_data : Données de la recherche (commune, surface, prix, etc.)
+        search_type : Type ('estimation', 'similaires', 'opportunites', 'marche')
+        search_data : Données de la recherche
     """
     cols = get_collections()
     cols["sessions"].insert_one({
-        "user_id":     user_id,
-        "type":        search_type,
-        "data":        search_data,
-        "created_at":  datetime.utcnow()
+        "user_id":    user_id,
+        "type":       search_type,
+        "data":       search_data,
+        "created_at": datetime.utcnow()
     })
+
+    # Déclenchement asynchrone — l'utilisateur ne ressent aucun délai
+    trigger_profile_update(user_id)
 
 
 def get_search_history(user_id: str, limit: int = 20) -> list:
@@ -30,12 +47,12 @@ def get_search_history(user_id: str, limit: int = 20) -> list:
 
     Args:
         user_id : Identifiant de l'utilisateur
-        limit   : Nombre maximum de résultats à retourner
+        limit   : Nombre maximum de résultats
 
     Returns:
         Liste des recherches triées par date décroissante
     """
-    cols = get_collections()
+    cols   = get_collections()
     cursor = cols["sessions"].find(
         {"user_id": user_id}
     ).sort("created_at", -1).limit(limit)
@@ -48,132 +65,415 @@ def get_search_history(user_id: str, limit: int = 20) -> list:
     return history
 
 
+# ---------------------------------------------------------------------------
+# PIPELINE ASYNCHRONE — Mise à jour silencieuse du profil
+# ---------------------------------------------------------------------------
+
+def trigger_profile_update(user_id: str) -> None:
+    """
+    Déclenche la mise à jour du profil utilisateur en arrière-plan.
+
+    Utilise un Thread daemon pour ne pas bloquer la réponse HTTP.
+    L'utilisateur reçoit sa réponse immédiatement pendant que le
+    profil se recalcule silencieusement en arrière-plan.
+
+    Args:
+        user_id : Identifiant de l'utilisateur
+    """
+    def _update():
+        try:
+            from utils.data_loader import data_manager
+            recommendations = generate_recommendations(user_id, data_manager)
+            save_recommendations(user_id, recommendations)
+            print(f"[Recommandations] Profil mis à jour pour {user_id} ({len(recommendations)} reco)")
+        except Exception as e:
+            print(f"[Recommandations] Erreur mise à jour asynchrone : {e}")
+
+    thread = threading.Thread(target=_update, daemon=True)
+    thread.start()
+
+
+# ---------------------------------------------------------------------------
+# PROFIL UTILISATEUR — Construction depuis l'historique
+# ---------------------------------------------------------------------------
+
 def build_user_profile(user_id: str) -> dict:
     """
-    Construit un profil utilisateur à partir de son historique de recherche.
+    Construit un profil utilisateur riche à partir de son historique.
 
-    Analyse les zones, budgets et surfaces recherchés pour en extraire
-    les préférences implicites de l'utilisateur.
+    Analyse toutes les actions pour extraire :
+    - Zones et départements favoris (par fréquence de recherche)
+    - Budget moyen, min, max (depuis les estimations)
+    - Surface typique recherchée
+    - Types de recherches préférées
+
+    Args:
+        user_id : Identifiant de l'utilisateur
 
     Returns:
-        dict contenant les zones, budgets et surfaces les plus fréquents
+        dict profil complet ou dict vide si pas d'historique
     """
-    history = get_search_history(user_id, limit=50)
+    history = get_search_history(user_id, limit=100)
 
     if not history:
         return {}
 
-    zones       = {}
-    budgets     = []
-    surfaces    = []
-    departements = {}
+    communes         = []
+    departements     = []
+    budgets          = []
+    surfaces         = []
+    types_recherches = []
 
     for search in history:
-        data = search.get("data", {})
+        data        = search.get("data", {})
+        search_type = search.get("type", "")
+        types_recherches.append(search_type)
 
-        # Extraction des zones recherchées
+        # Zones recherchées
         code_commune = data.get("code_commune")
         if code_commune:
-            zones[code_commune] = zones.get(code_commune, 0) + 1
-            dept = code_commune[:2]
-            departements[dept] = departements.get(dept, 0) + 1
+            communes.append(code_commune)
+            dept = str(code_commune)[:2]
+            departements.append(dept)
 
-        # Extraction des budgets
-        prix = data.get("prix_estime") or data.get("prix")
-        if prix:
-            budgets.append(float(prix))
+        # Département direct (analyse marché)
+        code_dept = data.get("code_dept")
+        if code_dept:
+            departements.append(str(code_dept))
 
-        # Extraction des surfaces
+        # Budgets
+        for key in ["prix_estime", "prix"]:
+            val = data.get(key)
+            if val:
+                try:
+                    budgets.append(float(val))
+                except (ValueError, TypeError):
+                    pass
+
+        # Surfaces
         surface = data.get("surface")
         if surface:
-            surfaces.append(float(surface))
+            try:
+                surfaces.append(float(surface))
+            except (ValueError, TypeError):
+                pass
 
-    # Construction du profil
+    # Comptage des fréquences
+    communes_freq     = Counter(communes)
+    departements_freq = Counter(departements)
+    types_freq        = Counter(types_recherches)
+
     profile = {
-        "zones_favorites":     sorted(zones, key=zones.get, reverse=True)[:5],
-        "departements_favoris": sorted(departements, key=departements.get, reverse=True)[:3],
-        "budget_moyen":        round(sum(budgets) / len(budgets), 0) if budgets else None,
-        "budget_min":          round(min(budgets), 0) if budgets else None,
-        "budget_max":          round(max(budgets), 0) if budgets else None,
-        "surface_moyenne":     round(sum(surfaces) / len(surfaces), 1) if surfaces else None,
-        "nb_recherches":       len(history)
+        "zones_favorites":       [c for c, _ in communes_freq.most_common(5)],
+        "departements_favoris":  [d for d, _ in departements_freq.most_common(3)],
+        "budget_moyen":          round(sum(budgets) / len(budgets), 0) if budgets else None,
+        "budget_min":            round(min(budgets), 0) if budgets else None,
+        "budget_max":            round(max(budgets), 0) if budgets else None,
+        "surface_moyenne":       round(sum(surfaces) / len(surfaces), 1) if surfaces else None,
+        "surface_min":           round(min(surfaces), 0) if surfaces else None,
+        "surface_max":           round(max(surfaces), 0) if surfaces else None,
+        "type_recherche_favori": types_freq.most_common(1)[0][0] if types_freq else None,
+        "nb_recherches_total":   len(history),
+        "nb_communes_uniques":   len(communes_freq),
+        "nb_departements":       len(departements_freq),
+        "zone_recurrente":       communes_freq.most_common(1)[0][0] if communes_freq else None,
+        "freq_zone_recurrente":  communes_freq.most_common(1)[0][1] if communes_freq else 0,
     }
 
     return profile
 
 
+# ---------------------------------------------------------------------------
+# MOTEUR DE RECOMMANDATIONS — Génération personnalisée
+# ---------------------------------------------------------------------------
+
 def generate_recommendations(user_id: str, data_manager) -> list:
     """
-    Génère des recommandations personnalisées pour un utilisateur.
+    Génère des recommandations personnalisées multicritères.
 
-    Basé sur le profil utilisateur, propose des communes similaires
-    à celles déjà recherchées avec des indicateurs de marché.
+    Stratégies combinées :
+    1. Communes voisines des zones déjà recherchées (même département)
+    2. Communes similaires en termes de prix (cohérence budget)
 
     Args:
         user_id      : Identifiant de l'utilisateur
-        data_manager : Instance du DataManager pour accéder aux données
+        data_manager : Instance DataManager pour accéder à MongoDB
 
     Returns:
-        Liste de recommandations avec commune, prix et justification
+        Liste de max 10 recommandations triées par score décroissant
     """
     profile = build_user_profile(user_id)
 
-    if not profile or not profile.get("zones_favorites"):
-        return []
+    if not profile or not profile.get("departements_favoris"):
+        return _get_default_recommendations(data_manager)
 
     recommendations = []
-    zones_dejà_vues = set(profile["zones_favorites"])
+    zones_deja_vues = set(profile.get("zones_favorites", []))
+    budget_moyen    = profile.get("budget_moyen")
+    surface_moy     = profile.get("surface_moyenne") or 55
+    dept_favoris    = profile.get("departements_favoris", [])
 
-    # Pour chaque département fréquemment recherché
-    for dept in profile.get("departements_favoris", []):
-        if data_manager.df_communes is None:
-            continue
+    # -------------------------------------------------------------------
+    # Stratégie 1 : Communes voisines (même département que les favoris)
+    # -------------------------------------------------------------------
+    for dept in dept_favoris[:3]:
+        communes_dept = _get_communes_departement(data_manager, dept)
 
-        # Récupération des communes du département
-        communes_dept = [
-            code for code in data_manager.df_communes.index
-            if code.startswith(dept) and code not in zones_dejà_vues
-        ]
-
-        # Budget de référence
-        budget_moyen = profile.get("budget_moyen")
-        surface_moyenne = profile.get("surface_moyenne", 50)
-
-        for code_commune in communes_dept[:20]:
-            stats = data_manager.get_commune_stats(code_commune)
-            if not stats or stats["nb_transactions"] < 10:
+        for code_commune, stats in communes_dept:
+            if code_commune in zones_deja_vues:
                 continue
 
-            prix_estime = stats["prix_m2_median"] * surface_moyenne
+            prix_estime = stats["prix_m2_median"] * surface_moy
 
-            # Filtrage par budget si disponible
             if budget_moyen:
                 ratio = prix_estime / budget_moyen
-                if ratio < 0.6 or ratio > 1.4:
+                if ratio < 0.5 or ratio > 1.8:
                     continue
+
+            score  = _compute_score(stats, budget_moyen, prix_estime, surface_moy)
+            raison = _generate_reason(profile, dept, stats, code_commune, "voisin")
 
             recommendations.append({
                 "code_commune":    code_commune,
-                "prix_m2_median":  stats["prix_m2_median"],
+                "prix_m2_median":  round(stats["prix_m2_median"], 0),
                 "nb_transactions": stats["nb_transactions"],
                 "prix_estime":     round(prix_estime, 0),
-                "raison":          f"Commune similaire à vos recherches dans le département {dept}",
-                "score":           stats["nb_transactions"]
+                "categorie_geo":   stats.get("categorie_geo", ""),
+                "raison":          raison,
+                "score":           score,
+                "strategie":       "voisin"
             })
 
-    # Tri par score décroissant et limitation des résultats
-    recommendations.sort(key=lambda x: x["score"], reverse=True)
-    return recommendations[:10]
+    # -------------------------------------------------------------------
+    # Stratégie 2 : Communes similaires en budget (autres départements)
+    # -------------------------------------------------------------------
+    if budget_moyen:
+        prix_m2_cible   = budget_moyen / surface_moy
+        communes_budget = _get_communes_budget(
+            data_manager, prix_m2_cible, zones_deja_vues, dept_favoris
+        )
 
+        for code_commune, stats in communes_budget[:5]:
+            prix_estime = stats["prix_m2_median"] * surface_moy
+            score       = _compute_score(stats, budget_moyen, prix_estime, surface_moy)
+            raison      = _generate_reason(
+                profile, str(code_commune)[:2], stats, code_commune, "budget"
+            )
+
+            recommendations.append({
+                "code_commune":    code_commune,
+                "prix_m2_median":  round(stats["prix_m2_median"], 0),
+                "nb_transactions": stats["nb_transactions"],
+                "prix_estime":     round(prix_estime, 0),
+                "categorie_geo":   stats.get("categorie_geo", ""),
+                "raison":          raison,
+                "score":           score,
+                "strategie":       "budget"
+            })
+
+    # Dédoublonnage par code_commune
+    seen   = set()
+    unique = []
+    for rec in recommendations:
+        if rec["code_commune"] not in seen:
+            seen.add(rec["code_commune"])
+            unique.append(rec)
+
+    unique.sort(key=lambda x: x["score"], reverse=True)
+    return unique[:10]
+
+
+# ---------------------------------------------------------------------------
+# SCORE DE PERTINENCE — Calcul multicritères
+# ---------------------------------------------------------------------------
+
+def _compute_score(stats: dict, budget_moyen: float, prix_estime: float, surface_moy: float) -> float:
+    """
+    Calcule un score de pertinence multicritères (0-100).
+
+    Pondération :
+    - 40% : Activité du marché (nb transactions → liquidité)
+    - 35% : Cohérence budgétaire
+    - 25% : Attractivité géographique
+    """
+    score = 0.0
+
+    # 40% — Activité marché
+    nb_t   = min(stats.get("nb_transactions", 0), 500)
+    score += (nb_t / 500) * 40
+
+    # 35% — Cohérence budgétaire
+    if budget_moyen and budget_moyen > 0:
+        ratio  = abs(prix_estime - budget_moyen) / budget_moyen
+        score += max(0, (1 - ratio) * 35)
+    else:
+        score += 17
+
+    # 25% — Attractivité zone
+    geo_scores = {
+        "1_Metropole_Top15":   25,
+        "2_Ile_de_France":     22,
+        "3_Zone_Touristique":  20,
+        "4_Province_Standard": 15
+    }
+    score += geo_scores.get(stats.get("categorie_geo", ""), 10)
+
+    return round(score, 1)
+
+
+# ---------------------------------------------------------------------------
+# RAISONS PERSONNALISÉES — Explication adaptée au profil
+# ---------------------------------------------------------------------------
+
+def _generate_reason(profile: dict, dept: str, stats: dict, code_commune: str, strategie: str) -> str:
+    """Génère une explication personnalisée et contextualisée."""
+    nb_recherches   = profile.get("nb_recherches_total", 0)
+    zone_recurrente = profile.get("zone_recurrente", "")
+    budget_moyen    = profile.get("budget_moyen")
+    categorie       = stats.get("categorie_geo", "")
+    nb_t            = stats.get("nb_transactions", 0)
+    prix            = stats.get("prix_m2_median", 0)
+
+    geo_labels = {
+        "1_Metropole_Top15":   "grande métropole",
+        "2_Ile_de_France":     "Île-de-France",
+        "3_Zone_Touristique":  "zone touristique",
+        "4_Province_Standard": "province"
+    }
+    geo_label = geo_labels.get(categorie, "")
+
+    if strategie == "voisin":
+        if zone_recurrente and zone_recurrente.startswith(dept):
+            return (
+                f"Vous recherchez souvent dans le département {dept}. "
+                f"Cette commune {geo_label} présente {nb_t} transactions "
+                f"à {int(prix):,} €/m², cohérente avec vos recherches."
+            )
+        return (
+            f"Commune {geo_label} dans votre département favori ({dept}). "
+            f"Marché actif avec {nb_t} transactions à {int(prix):,} €/m²."
+        )
+
+    if strategie == "budget":
+        if budget_moyen:
+            return (
+                f"Prix estimé cohérent avec votre budget moyen "
+                f"de {int(budget_moyen):,} €. Marché {geo_label} "
+                f"avec {nb_t} transactions récentes."
+            )
+        return (
+            f"Commune {geo_label} avec un bon rapport qualité/activité. "
+            f"{nb_t} transactions à {int(prix):,} €/m²."
+        )
+
+    return f"Commune recommandée selon vos {nb_recherches} recherches récentes."
+
+
+# ---------------------------------------------------------------------------
+# REQUÊTES MONGODB — Helpers
+# ---------------------------------------------------------------------------
+
+def _get_communes_departement(data_manager, dept: str) -> list:
+    """Récupère les communes d'un département depuis MongoDB."""
+    if data_manager.db is None:
+        return []
+
+    docs = list(
+        data_manager.db["communes"].find(
+            {"code_commune": {"$regex": f"^{dept}"}},
+            {"_id": 0}
+        ).sort("count", -1).limit(30)
+    )
+
+    results = []
+    for doc in docs:
+        stats = {
+            "prix_m2_median":  float(doc.get("prix_m2_median", 0)),
+            "prix_m2_mean":    float(doc.get("prix_m2_mean", 0)),
+            "nb_transactions": int(doc.get("count", 0)),
+            "surface_moyenne": float(doc.get("surface_mean", 0)),
+            "categorie_geo":   str(doc.get("categorie_geo", ""))
+        }
+        if stats["nb_transactions"] >= 10 and stats["prix_m2_median"] > 0:
+            results.append((doc.get("code_commune"), stats))
+
+    return results
+
+
+def _get_communes_budget(data_manager, prix_m2_cible: float, zones_deja_vues: set, depts_exclus: list) -> list:
+    """Récupère des communes dont le prix/m² est proche d'une cible."""
+    if data_manager.db is None:
+        return []
+
+    marge = 0.30
+    docs  = list(
+        data_manager.db["communes"].find(
+            {
+                "prix_m2_median": {
+                    "$gte": prix_m2_cible * (1 - marge),
+                    "$lte": prix_m2_cible * (1 + marge)
+                },
+                "count": {"$gte": 20}
+            },
+            {"_id": 0}
+        ).sort("count", -1).limit(50)
+    )
+
+    results = []
+    for doc in docs:
+        code = doc.get("code_commune", "")
+        dept = str(code)[:2]
+
+        if code in zones_deja_vues or dept in depts_exclus:
+            continue
+
+        stats = {
+            "prix_m2_median":  float(doc.get("prix_m2_median", 0)),
+            "prix_m2_mean":    float(doc.get("prix_m2_mean", 0)),
+            "nb_transactions": int(doc.get("count", 0)),
+            "surface_moyenne": float(doc.get("surface_mean", 0)),
+            "categorie_geo":   str(doc.get("categorie_geo", ""))
+        }
+        results.append((code, stats))
+
+    return results
+
+
+def _get_default_recommendations(data_manager) -> list:
+    """Recommandations par défaut pour les nouveaux utilisateurs."""
+    if data_manager.db is None:
+        return []
+
+    docs = list(
+        data_manager.db["communes"].find(
+            {"count": {"$gte": 50}},
+            {"_id": 0}
+        ).sort("count", -1).limit(10)
+    )
+
+    results = []
+    for doc in docs:
+        prix_estime = float(doc.get("prix_m2_median", 0)) * 55
+        results.append({
+            "code_commune":    doc.get("code_commune"),
+            "prix_m2_median":  round(float(doc.get("prix_m2_median", 0)), 0),
+            "nb_transactions": int(doc.get("count", 0)),
+            "prix_estime":     round(prix_estime, 0),
+            "categorie_geo":   str(doc.get("categorie_geo", "")),
+            "raison":          "Commune très active sur le marché immobilier français 2025.",
+            "score":           float(doc.get("count", 0)) / 10,
+            "strategie":       "default"
+        })
+
+    return results[:5]
+
+
+# ---------------------------------------------------------------------------
+# PERSISTANCE — Sauvegarde et récupération
+# ---------------------------------------------------------------------------
 
 def save_recommendations(user_id: str, recommendations: list) -> None:
-    """
-    Sauvegarde les recommandations générées en base.
-
-    Args:
-        user_id         : Identifiant de l'utilisateur
-        recommendations : Liste des recommandations à sauvegarder
-    """
+    """Sauvegarde les recommandations en MongoDB (upsert)."""
     cols = get_collections()
     cols["recommendations"].update_one(
         {"user_id": user_id},
@@ -181,7 +481,8 @@ def save_recommendations(user_id: str, recommendations: list) -> None:
             "$set": {
                 "user_id":         user_id,
                 "recommendations": recommendations,
-                "updated_at":      datetime.utcnow()
+                "updated_at":      datetime.utcnow(),
+                "nb_reco":         len(recommendations)
             }
         },
         upsert=True
@@ -189,14 +490,28 @@ def save_recommendations(user_id: str, recommendations: list) -> None:
 
 
 def get_recommendations(user_id: str) -> list:
-    """
-    Récupère les dernières recommandations sauvegardées d'un utilisateur.
-
-    Returns:
-        Liste des recommandations ou liste vide si aucune trouvée
-    """
+    """Récupère les dernières recommandations sauvegardées."""
     cols = get_collections()
-    doc = cols["recommendations"].find_one({"user_id": user_id})
+    doc  = cols["recommendations"].find_one({"user_id": user_id})
     if not doc:
         return []
     return doc.get("recommendations", [])
+
+
+def get_user_profile_summary(user_id: str) -> dict:
+    """
+    Retourne un résumé du profil utilisateur pour l'affichage
+    dans la page profil (stats comportementales).
+    """
+    profile = build_user_profile(user_id)
+    if not profile:
+        return {}
+
+    return {
+        "nb_recherches":       profile.get("nb_recherches_total", 0),
+        "nb_communes_uniques": profile.get("nb_communes_uniques", 0),
+        "dept_favori":         profile.get("departements_favoris", [None])[0],
+        "budget_moyen":        profile.get("budget_moyen"),
+        "surface_moyenne":     profile.get("surface_moyenne"),
+        "type_favori":         profile.get("type_recherche_favori"),
+    }

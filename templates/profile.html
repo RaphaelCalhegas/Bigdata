@@ -32,6 +32,121 @@
         </div>
     </div>
 
+    <!-- Profil comportemental — généré automatiquement depuis l'historique -->
+    {% if profile_summary and profile_summary.nb_recherches > 0 %}
+    <div class="scroll-reveal">
+        <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Votre profil investisseur</h2>
+                            <p class="text-xs text-slate-400">Construit automatiquement depuis vos recherches</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-semibold rounded-full border border-emerald-200">
+                        <i class="fas fa-sync-alt mr-1"></i> Mis à jour en temps réel
+                    </span>
+                </div>
+            </div>
+
+            <div class="px-6 py-5">
+                <!-- KPIs comportementaux -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+                        <p class="text-2xl font-extrabold text-emerald-600">
+                            {{ profile_summary.nb_recherches }}
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Recherches effectuées</p>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+                        <p class="text-2xl font-extrabold text-teal-600">
+                            {{ profile_summary.nb_communes_uniques or '—' }}
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Communes explorées</p>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+                        <p class="text-2xl font-extrabold text-emerald-600">
+                            {% if profile_summary.budget_moyen %}
+                                {{ "{:,.0f}".format(profile_summary.budget_moyen) }} €
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Budget moyen estimé</p>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+                        <p class="text-2xl font-extrabold text-teal-600">
+                            {% if profile_summary.surface_moyenne %}
+                                {{ profile_summary.surface_moyenne }} m²
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Surface recherchée</p>
+                    </div>
+
+                </div>
+
+                <!-- Tags profil comportemental -->
+                <div class="flex flex-wrap gap-2">
+
+                    {% if profile_summary.dept_favori %}
+                    <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                        <i class="fas fa-map-marker-alt mr-1"></i> Dept. favori : {{ profile_summary.dept_favori }}
+                    </span>
+                    {% endif %}
+
+                    {% if profile_summary.type_favori %}
+                    <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
+                        <i class="fas fa-star mr-1"></i>
+                        {% if profile_summary.type_favori == 'estimation' %}Profil Estimateur
+                        {% elif profile_summary.type_favori == 'opportunites' %}Profil Investisseur
+                        {% elif profile_summary.type_favori == 'similaires' %}Profil Comparateur
+                        {% elif profile_summary.type_favori == 'marche' %}Profil Analyste
+                        {% else %}{{ profile_summary.type_favori }}{% endif %}
+                    </span>
+                    {% endif %}
+
+                    {% if profile_summary.nb_communes_uniques and profile_summary.nb_communes_uniques > 5 %}
+                    <span class="px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">
+                        <i class="fas fa-compass mr-1"></i> Explorateur actif
+                    </span>
+                    {% endif %}
+
+                    {% if profile_summary.budget_moyen and profile_summary.budget_moyen > 400000 %}
+                    <span class="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
+                        <i class="fas fa-gem mr-1"></i> Segment Premium
+                    </span>
+                    {% elif profile_summary.budget_moyen %}
+                    <span class="px-3 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full border border-teal-200">
+                        <i class="fas fa-home mr-1"></i> Segment Standard
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <p class="text-xs text-slate-400 mt-4">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Ce profil est reconstruit automatiquement à chaque nouvelle recherche
+                    via notre pipeline d'analyse comportementale asynchrone.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Grille Recommandations + Historique -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         <!-- Recommandations personnalisées -->
@@ -61,7 +176,16 @@
                         <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
-                                    <p class="font-semibold text-slate-800 text-sm">Commune {{ rec.code_commune }}</p>
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <p class="font-semibold text-slate-800 text-sm">Commune {{ rec.code_commune }}</p>
+                                        {% if rec.strategie == 'voisin' %}
+                                        <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium">Zone favorite</span>
+                                        {% elif rec.strategie == 'budget' %}
+                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">Cohérence budget</span>
+                                        {% elif rec.strategie == 'default' %}
+                                        <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium">Populaire</span>
+                                        {% endif %}
+                                    </div>
                                     <p class="text-xs text-slate-500 mt-0.5">{{ rec.raison }}</p>
                                     <div class="flex items-center space-x-3 mt-2">
                                         <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
@@ -70,6 +194,11 @@
                                         <span class="text-xs text-slate-400">
                                             {{ rec.nb_transactions }} transactions
                                         </span>
+                                        {% if rec.score %}
+                                        <span class="text-xs text-slate-400">
+                                            Score : {{ rec.score }}
+                                        </span>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="text-right ml-4">
@@ -184,28 +313,45 @@
 {% block extra_js %}
 <script>
     async function refreshRecommendations() {
-        const btn = document.getElementById('refresh-btn');
+        const btn       = document.getElementById('refresh-btn');
         const container = document.getElementById('recommendations-container');
 
         btn.textContent = 'Chargement...';
-        btn.disabled = true;
+        btn.disabled    = true;
 
         try {
             const response = await fetch('/api/recommendations/refresh', { method: 'POST' });
-            const data = await response.json();
+            const data     = await response.json();
 
             if (data.success && data.recommendations.length > 0) {
+
+                // Mise à jour du profil investisseur si renvoyé
+                if (data.profile_summary && data.profile_summary.nb_recherches > 0) {
+                    const s = data.profile_summary;
+                    document.querySelectorAll('.profile-stat').forEach(el => el.remove());
+                }
+
+                const strategieLabels = {
+                    voisin:  "<span class='px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium'>Zone favorite</span>",
+                    budget:  "<span class='px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium'>Cohérence budget</span>",
+                    default: "<span class='px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium'>Populaire</span>"
+                };
+
                 container.innerHTML = data.recommendations.map(rec => `
                     <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
-                                <p class="font-semibold text-slate-800 text-sm">Commune ${rec.code_commune}</p>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <p class="font-semibold text-slate-800 text-sm">Commune ${rec.code_commune}</p>
+                                    ${strategieLabels[rec.strategie] || ''}
+                                </div>
                                 <p class="text-xs text-slate-500 mt-0.5">${rec.raison}</p>
                                 <div class="flex items-center space-x-3 mt-2">
                                     <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
                                         ${rec.prix_m2_median.toLocaleString('fr-FR')} €/m²
                                     </span>
                                     <span class="text-xs text-slate-400">${rec.nb_transactions} transactions</span>
+                                    <span class="text-xs text-slate-400">Score : ${rec.score}</span>
                                 </div>
                             </div>
                             <div class="text-right ml-4">
@@ -217,10 +363,13 @@
                         </div>
                     </div>
                 `).join('');
+
             } else {
                 container.innerHTML = `
                     <div class="px-6 py-12 text-center">
-                        <p class="text-sm text-slate-500">Effectuez davantage de recherches pour obtenir des recommandations.</p>
+                        <p class="text-sm text-slate-500">
+                            Effectuez davantage de recherches pour obtenir des recommandations.
+                        </p>
                     </div>`;
             }
         } catch (error) {
@@ -230,7 +379,7 @@
                 </div>`;
         } finally {
             btn.textContent = 'Actualiser';
-            btn.disabled = false;
+            btn.disabled    = false;
         }
     }
 </script>
