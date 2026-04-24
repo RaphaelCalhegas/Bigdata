@@ -57,37 +57,92 @@
             </div>
 
             <div class="px-6 py-5">
-                <!-- KPIs -->
+                <!-- KPIs comportementaux -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                         <p class="text-2xl font-extrabold text-emerald-600">{{ profile_summary.nb_recherches }}</p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Recherches effectuées</p>
                     </div>
+
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                         <p class="text-2xl font-extrabold text-teal-600">{{ profile_summary.nb_communes_uniques or '—' }}</p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Communes explorées</p>
                     </div>
+
+                    <!-- Budget implicite comportemental -->
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                         <p class="text-2xl font-extrabold text-emerald-600">
-                            {% if profile_summary.budget_moyen %}{{ "{:,.0f}".format(profile_summary.budget_moyen) }} €{% else %}—{% endif %}
+                            {% if profile_summary.budget_implicite %}
+                                {{ "{:,.0f}".format(profile_summary.budget_implicite) }} €
+                            {% else %}
+                                —
+                            {% endif %}
                         </p>
-                        <p class="text-xs text-slate-500 mt-1 font-medium">Budget moyen estimé</p>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Budget de référence</p>
+                        {% if profile_summary.prix_m2_zones and profile_summary.surface_moyenne %}
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            {{ "{:,.0f}".format(profile_summary.prix_m2_zones) }} €/m² × {{ profile_summary.surface_moyenne }} m²
+                        </p>
+                        {% endif %}
                     </div>
+
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                         <p class="text-2xl font-extrabold text-teal-600">
-                            {% if profile_summary.surface_moyenne %}{{ profile_summary.surface_moyenne }} m²{% else %}—{% endif %}
+                            {% if profile_summary.surface_moyenne %}
+                                {{ profile_summary.surface_moyenne }} m²
+                            {% else %}
+                                —
+                            {% endif %}
                         </p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Surface recherchée</p>
                     </div>
+
                 </div>
 
-                <!-- Tags -->
+                <!-- Score de cohérence -->
+                {% if profile_summary.score_coherence is not none %}
+                <div class="mb-5">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-xs font-semibold text-slate-600">
+                            <i class="fas fa-bullseye mr-1 text-emerald-500"></i>
+                            Cohérence des recherches
+                        </p>
+                        <p class="text-xs font-bold
+                            {% if profile_summary.score_coherence >= 60 %}text-emerald-600
+                            {% elif profile_summary.score_coherence >= 30 %}text-amber-600
+                            {% else %}text-red-500{% endif %}">
+                            {% if profile_summary.score_coherence >= 60 %}Recherches ciblées
+                            {% elif profile_summary.score_coherence >= 30 %}Recherches variées
+                            {% else %}Trop dispersé{% endif %}
+                            ({{ profile_summary.score_coherence }}%)
+                        </p>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2">
+                        <div class="h-2 rounded-full transition-all duration-500
+                            {% if profile_summary.score_coherence >= 60 %}bg-emerald-500
+                            {% elif profile_summary.score_coherence >= 30 %}bg-amber-400
+                            {% else %}bg-red-400{% endif %}"
+                            style="width: {{ profile_summary.score_coherence }}%">
+                        </div>
+                    </div>
+                    {% if profile_summary.score_coherence < 30 %}
+                    <p class="text-xs text-red-500 mt-1">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Vos recherches sont trop dispersées — concentrez-vous sur une zone pour des recommandations pertinentes.
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Tags profil -->
                 <div class="flex flex-wrap gap-2">
                     {% if profile_summary.dept_favori %}
                     <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
                         <i class="fas fa-map-marker-alt mr-1"></i> Dept. favori : {{ profile_summary.dept_favori }}
                     </span>
                     {% endif %}
+
                     {% if profile_summary.type_favori %}
                     <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
                         <i class="fas fa-star mr-1"></i>
@@ -98,16 +153,18 @@
                         {% else %}{{ profile_summary.type_favori }}{% endif %}
                     </span>
                     {% endif %}
+
                     {% if profile_summary.nb_communes_uniques and profile_summary.nb_communes_uniques > 5 %}
                     <span class="px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">
                         <i class="fas fa-compass mr-1"></i> Explorateur actif
                     </span>
                     {% endif %}
-                    {% if profile_summary.budget_moyen and profile_summary.budget_moyen > 400000 %}
+
+                    {% if profile_summary.budget_implicite and profile_summary.budget_implicite > 400000 %}
                     <span class="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
                         <i class="fas fa-gem mr-1"></i> Segment Premium
                     </span>
-                    {% elif profile_summary.budget_moyen %}
+                    {% elif profile_summary.budget_implicite %}
                     <span class="px-3 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full border border-teal-200">
                         <i class="fas fa-home mr-1"></i> Segment Standard
                     </span>
@@ -116,8 +173,9 @@
 
                 <p class="text-xs text-slate-400 mt-4">
                     <i class="fas fa-info-circle mr-1"></i>
-                    Ce profil est reconstruit automatiquement à chaque nouvelle recherche
-                    via notre pipeline d'analyse comportementale asynchrone.
+                    Le budget de référence est déduit de vos comportements de recherche :
+                    prix/m² médian de vos zones habituelles × surface moyenne recherchée.
+                    Il se met à jour automatiquement via notre pipeline asynchrone.
                 </p>
             </div>
         </div>
@@ -146,20 +204,23 @@
                     </button>
                 </div>
 
-                <!-- Bandeau critères profil utilisés -->
+                <!-- Bandeau critères profil -->
                 {% if profile_summary and profile_summary.nb_recherches > 0 %}
                 <div class="px-6 py-3 bg-emerald-50/60 border-b border-emerald-100">
                     <p class="text-xs text-emerald-700 font-medium">
                         <i class="fas fa-magic mr-1"></i>
                         Basé sur votre profil :
-                        {% if profile_summary.budget_moyen %}
-                        <span class="font-bold">budget {{ "{:,.0f}".format(profile_summary.budget_moyen) }} €</span>
+                        {% if profile_summary.budget_implicite %}
+                        <span class="font-bold">budget réf. {{ "{:,.0f}".format(profile_summary.budget_implicite) }} €</span>
                         {% endif %}
                         {% if profile_summary.surface_moyenne %}
                         · <span class="font-bold">{{ profile_summary.surface_moyenne }} m²</span>
                         {% endif %}
                         {% if profile_summary.dept_favori %}
                         · <span class="font-bold">dept. favori {{ profile_summary.dept_favori }}</span>
+                        {% endif %}
+                        {% if profile_summary.prix_m2_zones %}
+                        · <span class="font-bold">{{ "{:,.0f}".format(profile_summary.prix_m2_zones) }} €/m² médian</span>
                         {% endif %}
                     </p>
                 </div>
@@ -172,7 +233,6 @@
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-1">
-                                        <!-- Nom commune chargé via JS, fallback code INSEE -->
                                         <p class="font-semibold text-slate-800 text-sm commune-name"
                                            data-code="{{ rec.code_commune }}">
                                             {{ rec.code_commune }}
@@ -183,7 +243,7 @@
                                         </span>
                                         {% elif rec.strategie == 'budget' %}
                                         <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">
-                                            <i class="fas fa-wallet mr-0.5"></i> Cohérence budget
+                                            <i class="fas fa-wallet mr-0.5"></i> Prix/m² similaire
                                         </span>
                                         {% elif rec.strategie == 'default' %}
                                         <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium">
@@ -197,18 +257,16 @@
                                             {{ "{:,.0f}".format(rec.prix_m2_median) }} €/m²
                                         </span>
                                         <span class="text-xs text-slate-400">{{ rec.nb_transactions }} transactions</span>
-                                        {% if rec.score %}
                                         <span class="text-xs text-slate-400">Score : {{ rec.score }}</span>
-                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="text-right ml-4">
                                     <p class="text-sm font-bold text-slate-800">{{ "{:,.0f}".format(rec.prix_estime) }} €</p>
                                     <p class="text-xs text-slate-400">estimé</p>
-                                    {% if profile_summary and profile_summary.budget_moyen %}
-                                    {% set ecart = ((rec.prix_estime - profile_summary.budget_moyen) / profile_summary.budget_moyen * 100) | round(0) | int %}
-                                    <p class="text-xs mt-0.5 {% if ecart|abs < 15 %}text-emerald-600 font-semibold{% else %}text-slate-400{% endif %}">
-                                        {% if ecart > 0 %}+{{ ecart }}%{% else %}{{ ecart }}%{% endif %} vs budget
+                                    {% if profile_summary and profile_summary.budget_implicite %}
+                                    {% set ecart = ((rec.prix_estime - profile_summary.budget_implicite) / profile_summary.budget_implicite * 100) | round(0) | int %}
+                                    <p class="text-xs mt-0.5 {% if ecart|abs < 20 %}text-emerald-600 font-semibold{% else %}text-slate-400{% endif %}">
+                                        {% if ecart > 0 %}+{{ ecart }}%{% else %}{{ ecart }}%{% endif %} vs réf.
                                     </p>
                                     {% endif %}
                                 </div>
@@ -355,20 +413,14 @@ async function fetchCommuneName(code) {
     }
 }
 
-// Résolution de tous les noms de communes au chargement de la page
 async function resolveAllCommuneNames() {
-    // Recommandations
     const recEls = document.querySelectorAll('.commune-name[data-code]');
     await Promise.all([...recEls].map(async el => {
-        const nom = await fetchCommuneName(el.dataset.code);
-        el.textContent = nom;
+        el.textContent = await fetchCommuneName(el.dataset.code);
     }));
-
-    // Historique
     const histEls = document.querySelectorAll('.commune-history[data-code]');
     await Promise.all([...histEls].map(async el => {
-        const nom = await fetchCommuneName(el.dataset.code);
-        el.textContent = `Commune : ${nom}`;
+        el.textContent = `Commune : ${await fetchCommuneName(el.dataset.code)}`;
     }));
 }
 
@@ -379,7 +431,7 @@ document.addEventListener('DOMContentLoaded', resolveAllCommuneNames);
 // ---------------------------------------------------------------------------
 const strategieLabels = {
     voisin:  `<span class='px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium'><i class='fas fa-map-marker-alt mr-0.5'></i> Zone favorite</span>`,
-    budget:  `<span class='px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium'><i class='fas fa-wallet mr-0.5'></i> Cohérence budget</span>`,
+    budget:  `<span class='px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium'><i class='fas fa-wallet mr-0.5'></i> Prix/m² similaire</span>`,
     default: `<span class='px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium'><i class='fas fa-star mr-0.5'></i> Populaire</span>`
 };
 
@@ -395,24 +447,20 @@ async function refreshRecommendations() {
         const data     = await response.json();
 
         if (data.success && data.recommendations.length > 0) {
+            const budgetRef = data.profile_summary?.budget_implicite || null;
 
-            // Récupérer le budget du profil pour afficher l'écart
-            const budgetMoyen = data.profile_summary?.budget_moyen || null;
-
-            // Pré-charger les noms communes en parallèle
             const noms = await Promise.all(
                 data.recommendations.map(rec => fetchCommuneName(rec.code_commune))
             );
 
             container.innerHTML = data.recommendations.map((rec, i) => {
-                const nom    = noms[i];
+                const nom     = noms[i];
                 let ecartHtml = '';
-                if (budgetMoyen) {
-                    const ecart = Math.round((rec.prix_estime - budgetMoyen) / budgetMoyen * 100);
-                    const color = Math.abs(ecart) < 15 ? 'text-emerald-600 font-semibold' : 'text-slate-400';
-                    ecartHtml   = `<p class="text-xs mt-0.5 ${color}">${ecart > 0 ? '+' : ''}${ecart}% vs budget</p>`;
+                if (budgetRef) {
+                    const ecart = Math.round((rec.prix_estime - budgetRef) / budgetRef * 100);
+                    const color = Math.abs(ecart) < 20 ? 'text-emerald-600 font-semibold' : 'text-slate-400';
+                    ecartHtml   = `<p class="text-xs mt-0.5 ${color}">${ecart > 0 ? '+' : ''}${ecart}% vs réf.</p>`;
                 }
-
                 return `
                 <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
                     <div class="flex items-start justify-between">
