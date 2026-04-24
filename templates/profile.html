@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <!-- Profil comportemental — généré automatiquement depuis l'historique -->
+    <!-- Profil comportemental -->
     {% if profile_summary and profile_summary.nb_recherches > 0 %}
     <div class="scroll-reveal">
         <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden">
@@ -57,56 +57,37 @@
             </div>
 
             <div class="px-6 py-5">
-                <!-- KPIs comportementaux -->
+                <!-- KPIs -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-                        <p class="text-2xl font-extrabold text-emerald-600">
-                            {{ profile_summary.nb_recherches }}
-                        </p>
+                        <p class="text-2xl font-extrabold text-emerald-600">{{ profile_summary.nb_recherches }}</p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Recherches effectuées</p>
                     </div>
-
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-                        <p class="text-2xl font-extrabold text-teal-600">
-                            {{ profile_summary.nb_communes_uniques or '—' }}
-                        </p>
+                        <p class="text-2xl font-extrabold text-teal-600">{{ profile_summary.nb_communes_uniques or '—' }}</p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Communes explorées</p>
                     </div>
-
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                         <p class="text-2xl font-extrabold text-emerald-600">
-                            {% if profile_summary.budget_moyen %}
-                                {{ "{:,.0f}".format(profile_summary.budget_moyen) }} €
-                            {% else %}
-                                —
-                            {% endif %}
+                            {% if profile_summary.budget_moyen %}{{ "{:,.0f}".format(profile_summary.budget_moyen) }} €{% else %}—{% endif %}
                         </p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Budget moyen estimé</p>
                     </div>
-
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                         <p class="text-2xl font-extrabold text-teal-600">
-                            {% if profile_summary.surface_moyenne %}
-                                {{ profile_summary.surface_moyenne }} m²
-                            {% else %}
-                                —
-                            {% endif %}
+                            {% if profile_summary.surface_moyenne %}{{ profile_summary.surface_moyenne }} m²{% else %}—{% endif %}
                         </p>
                         <p class="text-xs text-slate-500 mt-1 font-medium">Surface recherchée</p>
                     </div>
-
                 </div>
 
-                <!-- Tags profil comportemental -->
+                <!-- Tags -->
                 <div class="flex flex-wrap gap-2">
-
                     {% if profile_summary.dept_favori %}
                     <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
                         <i class="fas fa-map-marker-alt mr-1"></i> Dept. favori : {{ profile_summary.dept_favori }}
                     </span>
                     {% endif %}
-
                     {% if profile_summary.type_favori %}
                     <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
                         <i class="fas fa-star mr-1"></i>
@@ -117,13 +98,11 @@
                         {% else %}{{ profile_summary.type_favori }}{% endif %}
                     </span>
                     {% endif %}
-
                     {% if profile_summary.nb_communes_uniques and profile_summary.nb_communes_uniques > 5 %}
                     <span class="px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">
                         <i class="fas fa-compass mr-1"></i> Explorateur actif
                     </span>
                     {% endif %}
-
                     {% if profile_summary.budget_moyen and profile_summary.budget_moyen > 400000 %}
                     <span class="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
                         <i class="fas fa-gem mr-1"></i> Segment Premium
@@ -133,7 +112,6 @@
                         <i class="fas fa-home mr-1"></i> Segment Standard
                     </span>
                     {% endif %}
-
                 </div>
 
                 <p class="text-xs text-slate-400 mt-4">
@@ -149,7 +127,7 @@
     <!-- Grille Recommandations + Historique -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <!-- Recommandations personnalisées -->
+        <!-- Recommandations -->
         <div class="scroll-reveal">
             <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden">
                 <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
@@ -162,13 +140,30 @@
                         </div>
                         <h2 class="text-lg font-bold text-slate-800">Recommandations</h2>
                     </div>
-                    <button
-                        onclick="refreshRecommendations()"
-                        id="refresh-btn"
+                    <button onclick="refreshRecommendations()" id="refresh-btn"
                         class="px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200">
                         Actualiser
                     </button>
                 </div>
+
+                <!-- Bandeau critères profil utilisés -->
+                {% if profile_summary and profile_summary.nb_recherches > 0 %}
+                <div class="px-6 py-3 bg-emerald-50/60 border-b border-emerald-100">
+                    <p class="text-xs text-emerald-700 font-medium">
+                        <i class="fas fa-magic mr-1"></i>
+                        Basé sur votre profil :
+                        {% if profile_summary.budget_moyen %}
+                        <span class="font-bold">budget {{ "{:,.0f}".format(profile_summary.budget_moyen) }} €</span>
+                        {% endif %}
+                        {% if profile_summary.surface_moyenne %}
+                        · <span class="font-bold">{{ profile_summary.surface_moyenne }} m²</span>
+                        {% endif %}
+                        {% if profile_summary.dept_favori %}
+                        · <span class="font-bold">dept. favori {{ profile_summary.dept_favori }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
 
                 <div id="recommendations-container" class="divide-y divide-slate-50">
                     {% if recommendations %}
@@ -177,13 +172,23 @@
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-1">
-                                        <p class="font-semibold text-slate-800 text-sm">Commune {{ rec.code_commune }}</p>
+                                        <!-- Nom commune chargé via JS, fallback code INSEE -->
+                                        <p class="font-semibold text-slate-800 text-sm commune-name"
+                                           data-code="{{ rec.code_commune }}">
+                                            {{ rec.code_commune }}
+                                        </p>
                                         {% if rec.strategie == 'voisin' %}
-                                        <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium">Zone favorite</span>
+                                        <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium">
+                                            <i class="fas fa-map-marker-alt mr-0.5"></i> Zone favorite
+                                        </span>
                                         {% elif rec.strategie == 'budget' %}
-                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">Cohérence budget</span>
+                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">
+                                            <i class="fas fa-wallet mr-0.5"></i> Cohérence budget
+                                        </span>
                                         {% elif rec.strategie == 'default' %}
-                                        <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium">Populaire</span>
+                                        <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium">
+                                            <i class="fas fa-star mr-0.5"></i> Populaire
+                                        </span>
                                         {% endif %}
                                     </div>
                                     <p class="text-xs text-slate-500 mt-0.5">{{ rec.raison }}</p>
@@ -191,21 +196,21 @@
                                         <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
                                             {{ "{:,.0f}".format(rec.prix_m2_median) }} €/m²
                                         </span>
-                                        <span class="text-xs text-slate-400">
-                                            {{ rec.nb_transactions }} transactions
-                                        </span>
+                                        <span class="text-xs text-slate-400">{{ rec.nb_transactions }} transactions</span>
                                         {% if rec.score %}
-                                        <span class="text-xs text-slate-400">
-                                            Score : {{ rec.score }}
-                                        </span>
+                                        <span class="text-xs text-slate-400">Score : {{ rec.score }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
                                 <div class="text-right ml-4">
-                                    <p class="text-sm font-bold text-slate-800">
-                                        {{ "{:,.0f}".format(rec.prix_estime) }} €
-                                    </p>
+                                    <p class="text-sm font-bold text-slate-800">{{ "{:,.0f}".format(rec.prix_estime) }} €</p>
                                     <p class="text-xs text-slate-400">estimé</p>
+                                    {% if profile_summary and profile_summary.budget_moyen %}
+                                    {% set ecart = ((rec.prix_estime - profile_summary.budget_moyen) / profile_summary.budget_moyen * 100) | round(0) | int %}
+                                    <p class="text-xs mt-0.5 {% if ecart|abs < 15 %}text-emerald-600 font-semibold{% else %}text-slate-400{% endif %}">
+                                        {% if ecart > 0 %}+{{ ecart }}%{% else %}{{ ecart }}%{% endif %} vs budget
+                                    </p>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -271,7 +276,10 @@
                                     <div>
                                         <p class="text-sm font-medium text-slate-700 capitalize">{{ item.type }}</p>
                                         {% if item.data.get('code_commune') %}
-                                        <p class="text-xs text-slate-400">Commune : {{ item.data.code_commune }}</p>
+                                        <p class="text-xs text-slate-400 commune-history"
+                                           data-code="{{ item.data.code_commune }}">
+                                            Commune : {{ item.data.code_commune }}
+                                        </p>
                                         {% elif item.data.get('code_dept') %}
                                         <p class="text-xs text-slate-400">Département : {{ item.data.code_dept }}</p>
                                         {% endif %}
@@ -312,75 +320,140 @@
 
 {% block extra_js %}
 <script>
-    async function refreshRecommendations() {
-        const btn       = document.getElementById('refresh-btn');
-        const container = document.getElementById('recommendations-container');
+// ---------------------------------------------------------------------------
+// Cache communes + résolution via API Geo.gouv
+// ---------------------------------------------------------------------------
+const communeCache = {
+    '75101': 'Paris 1er',   '75102': 'Paris 2ème',  '75103': 'Paris 3ème',
+    '75104': 'Paris 4ème',  '75105': 'Paris 5ème',  '75106': 'Paris 6ème',
+    '75107': 'Paris 7ème',  '75108': 'Paris 8ème',  '75109': 'Paris 9ème',
+    '75110': 'Paris 10ème', '75111': 'Paris 11ème', '75112': 'Paris 12ème',
+    '75113': 'Paris 13ème', '75114': 'Paris 14ème', '75115': 'Paris 15ème',
+    '75116': 'Paris 16ème', '75117': 'Paris 17ème', '75118': 'Paris 18ème',
+    '75119': 'Paris 19ème', '75120': 'Paris 20ème',
+    '69381': 'Lyon 1er',    '69382': 'Lyon 2ème',   '69383': 'Lyon 3ème',
+    '69384': 'Lyon 4ème',   '69385': 'Lyon 5ème',   '69386': 'Lyon 6ème',
+    '69387': 'Lyon 7ème',   '69388': 'Lyon 8ème',   '69389': 'Lyon 9ème',
+    '13201': 'Marseille 1er',  '13202': 'Marseille 2ème',  '13203': 'Marseille 3ème',
+    '13204': 'Marseille 4ème', '13205': 'Marseille 5ème',  '13206': 'Marseille 6ème',
+    '13207': 'Marseille 7ème', '13208': 'Marseille 8ème',  '13209': 'Marseille 9ème',
+    '13210': 'Marseille 10ème','13211': 'Marseille 11ème', '13212': 'Marseille 12ème',
+    '13213': 'Marseille 13ème','13214': 'Marseille 14ème', '13215': 'Marseille 15ème',
+    '13216': 'Marseille 16ème'
+};
 
-        btn.textContent = 'Chargement...';
-        btn.disabled    = true;
+async function fetchCommuneName(code) {
+    if (communeCache[code]) return communeCache[code];
+    try {
+        const res  = await fetch(`https://geo.api.gouv.fr/communes/${code}?fields=nom`);
+        const data = await res.json();
+        const nom  = data.nom || code;
+        communeCache[code] = nom;
+        return nom;
+    } catch {
+        return code;
+    }
+}
 
-        try {
-            const response = await fetch('/api/recommendations/refresh', { method: 'POST' });
-            const data     = await response.json();
+// Résolution de tous les noms de communes au chargement de la page
+async function resolveAllCommuneNames() {
+    // Recommandations
+    const recEls = document.querySelectorAll('.commune-name[data-code]');
+    await Promise.all([...recEls].map(async el => {
+        const nom = await fetchCommuneName(el.dataset.code);
+        el.textContent = nom;
+    }));
 
-            if (data.success && data.recommendations.length > 0) {
+    // Historique
+    const histEls = document.querySelectorAll('.commune-history[data-code]');
+    await Promise.all([...histEls].map(async el => {
+        const nom = await fetchCommuneName(el.dataset.code);
+        el.textContent = `Commune : ${nom}`;
+    }));
+}
 
-                // Mise à jour du profil investisseur si renvoyé
-                if (data.profile_summary && data.profile_summary.nb_recherches > 0) {
-                    const s = data.profile_summary;
-                    document.querySelectorAll('.profile-stat').forEach(el => el.remove());
+document.addEventListener('DOMContentLoaded', resolveAllCommuneNames);
+
+// ---------------------------------------------------------------------------
+// Actualisation des recommandations
+// ---------------------------------------------------------------------------
+const strategieLabels = {
+    voisin:  `<span class='px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium'><i class='fas fa-map-marker-alt mr-0.5'></i> Zone favorite</span>`,
+    budget:  `<span class='px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium'><i class='fas fa-wallet mr-0.5'></i> Cohérence budget</span>`,
+    default: `<span class='px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium'><i class='fas fa-star mr-0.5'></i> Populaire</span>`
+};
+
+async function refreshRecommendations() {
+    const btn       = document.getElementById('refresh-btn');
+    const container = document.getElementById('recommendations-container');
+
+    btn.textContent = 'Chargement...';
+    btn.disabled    = true;
+
+    try {
+        const response = await fetch('/api/recommendations/refresh', { method: 'POST' });
+        const data     = await response.json();
+
+        if (data.success && data.recommendations.length > 0) {
+
+            // Récupérer le budget du profil pour afficher l'écart
+            const budgetMoyen = data.profile_summary?.budget_moyen || null;
+
+            // Pré-charger les noms communes en parallèle
+            const noms = await Promise.all(
+                data.recommendations.map(rec => fetchCommuneName(rec.code_commune))
+            );
+
+            container.innerHTML = data.recommendations.map((rec, i) => {
+                const nom    = noms[i];
+                let ecartHtml = '';
+                if (budgetMoyen) {
+                    const ecart = Math.round((rec.prix_estime - budgetMoyen) / budgetMoyen * 100);
+                    const color = Math.abs(ecart) < 15 ? 'text-emerald-600 font-semibold' : 'text-slate-400';
+                    ecartHtml   = `<p class="text-xs mt-0.5 ${color}">${ecart > 0 ? '+' : ''}${ecart}% vs budget</p>`;
                 }
 
-                const strategieLabels = {
-                    voisin:  "<span class='px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded font-medium'>Zone favorite</span>",
-                    budget:  "<span class='px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium'>Cohérence budget</span>",
-                    default: "<span class='px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium'>Populaire</span>"
-                };
-
-                container.innerHTML = data.recommendations.map(rec => `
-                    <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <p class="font-semibold text-slate-800 text-sm">Commune ${rec.code_commune}</p>
-                                    ${strategieLabels[rec.strategie] || ''}
-                                </div>
-                                <p class="text-xs text-slate-500 mt-0.5">${rec.raison}</p>
-                                <div class="flex items-center space-x-3 mt-2">
-                                    <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-                                        ${rec.prix_m2_median.toLocaleString('fr-FR')} €/m²
-                                    </span>
-                                    <span class="text-xs text-slate-400">${rec.nb_transactions} transactions</span>
-                                    <span class="text-xs text-slate-400">Score : ${rec.score}</span>
-                                </div>
+                return `
+                <div class="px-6 py-4 hover:bg-emerald-50/30 transition-colors duration-200">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <p class="font-semibold text-slate-800 text-sm">${nom}</p>
+                                ${strategieLabels[rec.strategie] || ''}
                             </div>
-                            <div class="text-right ml-4">
-                                <p class="text-sm font-bold text-slate-800">
-                                    ${rec.prix_estime.toLocaleString('fr-FR')} €
-                                </p>
-                                <p class="text-xs text-slate-400">estimé</p>
+                            <p class="text-xs text-slate-500 mt-0.5">${rec.raison}</p>
+                            <div class="flex items-center space-x-3 mt-2">
+                                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
+                                    ${rec.prix_m2_median.toLocaleString('fr-FR')} €/m²
+                                </span>
+                                <span class="text-xs text-slate-400">${rec.nb_transactions} transactions</span>
+                                <span class="text-xs text-slate-400">Score : ${rec.score}</span>
                             </div>
                         </div>
+                        <div class="text-right ml-4">
+                            <p class="text-sm font-bold text-slate-800">${rec.prix_estime.toLocaleString('fr-FR')} €</p>
+                            <p class="text-xs text-slate-400">estimé</p>
+                            ${ecartHtml}
+                        </div>
                     </div>
-                `).join('');
-
-            } else {
-                container.innerHTML = `
-                    <div class="px-6 py-12 text-center">
-                        <p class="text-sm text-slate-500">
-                            Effectuez davantage de recherches pour obtenir des recommandations.
-                        </p>
-                    </div>`;
-            }
-        } catch (error) {
-            container.innerHTML = `
-                <div class="px-6 py-4 text-center">
-                    <p class="text-sm text-red-500">Erreur lors du chargement des recommandations.</p>
                 </div>`;
-        } finally {
-            btn.textContent = 'Actualiser';
-            btn.disabled    = false;
+            }).join('');
+
+        } else {
+            container.innerHTML = `
+                <div class="px-6 py-12 text-center">
+                    <p class="text-sm text-slate-500">Effectuez davantage de recherches pour obtenir des recommandations.</p>
+                </div>`;
         }
+    } catch (error) {
+        container.innerHTML = `
+            <div class="px-6 py-4 text-center">
+                <p class="text-sm text-red-500">Erreur lors du chargement des recommandations.</p>
+            </div>`;
+    } finally {
+        btn.textContent = 'Actualiser';
+        btn.disabled    = false;
     }
+}
 </script>
 {% endblock %}
