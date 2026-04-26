@@ -22,7 +22,7 @@
             </h2>
         </div>
         <div class="card-body">
-            <div class="grid md:grid-cols-4 gap-6 items-end">
+            <div class="grid md:grid-cols-4 gap-6">
                 <div>
                     <label class="form-label">
                         <i class="fas fa-percentage text-emerald-600 mr-2"></i>
@@ -68,12 +68,14 @@
                         <option value="province_dynamique">Province Dynamique (31, 34, 35, 44, 33, 67)</option>
                         <option value="province_accessible">Province Accessible (reste du territoire)</option>
                     </select>
+                    <p class="text-sm text-gray-500 mt-2">&nbsp;</p>
                 </div>
-                <div class="flex items-end">
+                <div>
                     <button id="btnAnalyze" class="btn btn-primary w-full">
                         <i class="fas fa-search-dollar text-xl"></i>
                         <span>Détecter Opportunités</span>
                     </button>
+                    <p class="text-sm text-gray-500 mt-2">&nbsp;</p>
                 </div>
             </div>
         </div>
@@ -83,7 +85,6 @@
     <div id="kpiSection" class="hidden fade-in mb-8">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
 
-            <!-- Opportunités trouvées -->
             <div class="stat-card text-center border-2 border-emerald-200">
                 <i class="fas fa-gem text-5xl text-emerald-600 mb-4"></i>
                 <div class="flex items-center justify-center space-x-1 mb-2">
@@ -98,7 +99,6 @@
                 <h3 class="text-4xl font-bold text-emerald-600" id="kpiOpportunities">-</h3>
             </div>
 
-            <!-- Décote médiane -->
             <div class="stat-card text-center border-2 border-teal-200">
                 <i class="fas fa-percentage text-5xl text-teal-600 mb-4"></i>
                 <div class="flex items-center justify-center space-x-1 mb-2">
@@ -113,7 +113,6 @@
                 <h3 class="text-4xl font-bold text-teal-600" id="kpiDecote">-</h3>
             </div>
 
-            <!-- Prix m² médian -->
             <div class="stat-card text-center border-2 border-emerald-200">
                 <i class="fas fa-euro-sign text-5xl text-emerald-600 mb-4"></i>
                 <div class="flex items-center justify-center space-x-1 mb-2">
@@ -128,7 +127,6 @@
                 <h3 class="text-4xl font-bold text-emerald-600" id="kpiPrixMedian">-</h3>
             </div>
 
-            <!-- Surface médiane -->
             <div class="stat-card text-center border-2 border-teal-200">
                 <i class="fas fa-expand-arrows-alt text-5xl text-teal-600 mb-4"></i>
                 <div class="flex items-center justify-center space-x-1 mb-2">
@@ -264,7 +262,7 @@
                     </div>
                 </div>
 
-                <!-- Tableau avec en-têtes ? cliquables -->
+                <!-- Tableau -->
                 <div class="overflow-x-auto">
                     <table class="table" id="tableOpportunities">
                         <thead>
@@ -590,7 +588,6 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Infobulles au clic — supprime le tooltip hover de l'ancienne version
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.info-btn');
         if (btn) {
