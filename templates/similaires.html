@@ -48,21 +48,17 @@
                         <div>
                             <label for="searchCodePostal" class="form-label">
                                 <i class="fas fa-map-marker-alt text-emerald-600 mr-2"></i>
-                                Code Postal 
+                                Code Postal
                             </label>
                             <div class="relative">
                                 <input type="text" class="form-control" id="searchCodePostal"
                                     placeholder="Ex: 75001" maxlength="100" autocomplete="off">
                                 <input type="hidden" id="searchCommune">
-
-                                <!-- Suggestions -->
                                 <div id="searchSuggestions"
                                     class="hidden absolute left-0 right-0 mt-1 bg-white border border-emerald-200
                                            rounded-xl shadow-lg overflow-hidden z-50 max-h-60 overflow-y-auto">
                                 </div>
                             </div>
-
-                            <!-- Commune sélectionnée -->
                             <p class="text-sm text-emerald-600 mt-2 font-medium" id="searchCommuneSelected"></p>
                             <p class="text-sm text-gray-500 mt-1">Recherche dans le même département (±30% surface, ±1 pièce)</p>
                         </div>
@@ -109,12 +105,78 @@
                             <table class="table" id="tableResults">
                                 <thead>
                                     <tr>
-                                        <th>Commune</th>
-                                        <th>Prix Total</th>
-                                        <th>Surface</th>
-                                        <th>Pièces</th>
-                                        <th>Prix/m²</th>
-                                        <th>Standing</th>
+                                        <!-- Commune -->
+                                        <th>
+                                            <span class="flex items-center space-x-1">
+                                                <span>Commune</span>
+                                                <button class="info-btn" data-info="sim-commune">
+                                                    <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                                </button>
+                                            </span>
+                                            <div class="info-box hidden" id="info-sim-commune">
+                                                Nom de la commune issu de l'API officielle geo.gouv.fr, avec son code postal. La recherche couvre l'ensemble du département de la commune saisie.
+                                            </div>
+                                        </th>
+                                        <!-- Prix Total -->
+                                        <th>
+                                            <span class="flex items-center space-x-1">
+                                                <span>Prix Total</span>
+                                                <button class="info-btn" data-info="sim-prix-total">
+                                                    <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                                </button>
+                                            </span>
+                                            <div class="info-box hidden" id="info-sim-prix-total">
+                                                Prix de vente total déclaré lors de la transaction, issu des données officielles DVF 2025. Ce prix est celui de la transaction réelle — pas une estimation.
+                                            </div>
+                                        </th>
+                                        <!-- Surface -->
+                                        <th>
+                                            <span class="flex items-center space-x-1">
+                                                <span>Surface</span>
+                                                <button class="info-btn" data-info="sim-surface">
+                                                    <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                                </button>
+                                            </span>
+                                            <div class="info-box hidden" id="info-sim-surface">
+                                                Surface habitable déclarée dans les données DVF 2025. Filtre appliqué : ±30% de la surface que vous avez saisie.
+                                            </div>
+                                        </th>
+                                        <!-- Pièces -->
+                                        <th>
+                                            <span class="flex items-center space-x-1">
+                                                <span>Pièces</span>
+                                                <button class="info-btn" data-info="sim-pieces">
+                                                    <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                                </button>
+                                            </span>
+                                            <div class="info-box hidden" id="info-sim-pieces">
+                                                Nombre de pièces principales (T1=1, T2=2, T3=3...). Ne comprend pas la cuisine, la salle de bain et les WC. Filtre appliqué : ±1 pièce par rapport à votre critère.
+                                            </div>
+                                        </th>
+                                        <!-- Prix/m² -->
+                                        <th>
+                                            <span class="flex items-center space-x-1">
+                                                <span>Prix/m²</span>
+                                                <button class="info-btn" data-info="sim-prix-m2">
+                                                    <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                                </button>
+                                            </span>
+                                            <div class="info-box hidden" id="info-sim-prix-m2">
+                                                Prix au m² calculé en divisant le prix total par la surface réelle bâtie. Permet de comparer objectivement des biens de surfaces différentes.
+                                            </div>
+                                        </th>
+                                        <!-- Standing -->
+                                        <th>
+                                            <span class="flex items-center space-x-1">
+                                                <span>Standing</span>
+                                                <button class="info-btn" data-info="sim-standing">
+                                                    <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                                                </button>
+                                            </span>
+                                            <div class="info-box hidden" id="info-sim-standing">
+                                                Positionnement du prix de ce bien par rapport au marché local de sa commune. Décote &lt;70% · Affaire 70-90% · Standard 90-115% · Premium 115-140% · Prestige &gt;140%.
+                                            </div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -183,27 +245,48 @@
     </div>
 </div>
 
-<div id="tooltip-global-sim"></div>
+<!-- Suppression du tooltip hover — remplacé par les ? cliquables dans l'en-tête -->
 
 <style>
-    #tooltip-global-sim {
-        position:       fixed;
-        z-index:        9999;
+    .info-box {
         background:     #1e293b;
         color:          white;
-        font-size:      0.75rem;
-        border-radius:  0.75rem;
-        padding:        0.75rem;
-        max-width:      260px;
-        line-height:    1.6;
-        pointer-events: none;
-        display:        none;
-        box-shadow:     0 10px 30px rgba(0,0,0,0.3);
+        font-size:      0.72rem;
+        border-radius:  0.5rem;
+        padding:        0.6rem 0.75rem;
+        margin:         0.3rem 0 0;
+        line-height:    1.5;
+        font-weight:    normal;
+        text-transform: none;
+        letter-spacing: normal;
+        max-width:      240px;
+    }
+    .info-btn {
+        background: none;
+        border:     none;
+        cursor:     pointer;
+        padding:    0;
+        line-height: 1;
     }
 </style>
 
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Infobulles au clic — ferme au clic ailleurs
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.info-btn');
+        if (btn) {
+            e.stopPropagation();
+            const box = document.getElementById(`info-${btn.dataset.info}`);
+            if (!box) return;
+            document.querySelectorAll('.info-box').forEach(b => { if (b !== box) b.classList.add('hidden'); });
+            box.classList.toggle('hidden');
+        } else {
+            document.querySelectorAll('.info-box').forEach(b => b.classList.add('hidden'));
+        }
+    });
+</script>
 <script src="{{ url_for('static', filename='js/similaires.js') }}"></script>
 {% endblock %}

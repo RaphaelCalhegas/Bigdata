@@ -101,17 +101,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const contamination = document.getElementById('contamination');
     const maxRatio      = document.getElementById('maxRatio');
     const zoneFilter    = document.getElementById('zoneFilter');
-    const tooltip       = document.getElementById('tooltip-global');
 
     document.getElementById('modalAnnonce').addEventListener('click', function (e) {
         if (e.target === this) closeModal();
-    });
-
-    document.addEventListener('mousemove', function (e) {
-        if (tooltip.style.display === 'block') {
-            tooltip.style.left = (e.clientX + 14) + 'px';
-            tooltip.style.top  = (e.clientY - 10) + 'px';
-        }
     });
 
     btnAnalyze.addEventListener('click', detectOpportunities);
@@ -125,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 body:    JSON.stringify({
                     contamination: parseFloat(contamination.value),
                     max_ratio:     parseFloat(maxRatio.value),
-                    zone_filter:   'all'  // filtre zone géré côté JS
+                    zone_filter:   'all'
                 })
             });
             const data = await response.json();
@@ -148,12 +140,10 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('kpiSurface').textContent       = `${Math.round(data.median_surface)} m²`;
         document.getElementById('kpiSection').classList.remove('hidden');
 
-        // Pré-chargement de tous les noms de communes en parallèle
         await Promise.all(
             data.opportunities.map(opp => fetchCommuneLabel(opp.code_commune))
         );
 
-        // Filtre zone JS appliqué dès la détection
         const zoneSelected = zoneFilter.value;
         const filtered     = zoneSelected === 'all'
             ? data.opportunities
@@ -262,19 +252,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // -----------------------------------------------------------------------
     // TABLEAU + PAGINATION
+    // Suppression complète des data-tooltip et mouseenter/mouseleave
+    // Les infobulles sont maintenant dans les en-têtes du tableau (HTML)
     // -----------------------------------------------------------------------
-
-    function attachTooltips() {
-        document.querySelectorAll('[data-tooltip]').forEach(el => {
-            el.addEventListener('mouseenter', function () {
-                tooltip.innerHTML     = this.getAttribute('data-tooltip');
-                tooltip.style.display = 'block';
-            });
-            el.addEventListener('mouseleave', function () {
-                tooltip.style.display = 'none';
-            });
-        });
-    }
 
     window.renderOppPage = function (page) {
         const tbody = document.querySelector('#tableOpportunities tbody');
@@ -303,99 +283,28 @@ document.addEventListener('DOMContentLoaded', function () {
             const row        = tbody.insertRow();
             row.innerHTML    = `
                 <td>
-                    <div class="flex flex-col cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Score d'opportunité</strong><br><br>
-                        Indicateur de qualité de l'opportunité d'investissement.<br><br>
-                        Un score élevé signifie que ce bien présente une décote importante par rapport
-                        à son marché local, dans une zone attractive, avec une surface cohérente.<br><br>
-                        Plus le score est proche de 100, plus le bien est considéré comme une opportunité rare à saisir.">
+                    <div class="flex flex-col">
                         <span class="font-bold text-lg">${Math.round(opp.investment_score)}/100</span>
                         <span class="text-xs text-gray-400">Score investissement</span>
                     </div>
                 </td>
                 <td>
-                    <span class="font-bold text-green-600 cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Décote vs marché local</strong><br><br>
-                        Écart en pourcentage entre le prix de cette transaction et le prix médian au m² de la commune.<br><br>
-                        Une décote de -50% signifie que ce bien a été vendu deux fois moins cher que la médiane locale.<br><br>
-                        <span class='text-slate-300'>Cet écart peut s'expliquer par l'état du bien,
-                        une vente rapide ou une succession.</span>">
+                    <span class="font-bold text-green-600">
                         -${parseFloat(opp.decote_pct).toFixed(2)}%
                     </span>
                 </td>
+                <td>${Math.round(opp.valeur_fonciere).toLocaleString()} €</td>
+                <td>${Math.round(opp.prix_m2).toLocaleString()} €</td>
+                <td class="text-gray-600">${Math.round(opp.marche_prix_m2_median).toLocaleString()} €</td>
+                <td>${Math.round(opp.surface_reelle_bati)} m²</td>
+                <td>${opp.nombre_pieces_principales}</td>
                 <td>
-                    <span class="cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Prix total du bien</strong><br><br>
-                        Prix de vente total déclaré lors de la transaction, issu des données officielles
-                        DVF 2025 publiées par la Direction Générale des Finances Publiques.">
-                        ${Math.round(opp.valeur_fonciere).toLocaleString()} €
-                    </span>
-                </td>
-                <td>
-                    <span class="cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Prix au m² du bien</strong><br><br>
-                        Prix au m² calculé en divisant le prix total par la surface réelle bâtie.<br><br>
-                        Permet de comparer objectivement des biens de surfaces différentes.">
-                        ${Math.round(opp.prix_m2).toLocaleString()} €
-                    </span>
-                </td>
-                <td>
-                    <span class="text-gray-600 cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Prix médian du marché local</strong><br><br>
-                        Prix médian au m² calculé sur l'ensemble des transactions d'appartements
-                        enregistrées dans la même commune en 2025.<br><br>
-                        C'est la référence utilisée pour calculer la décote de ce bien.">
-                        ${Math.round(opp.marche_prix_m2_median).toLocaleString()} €
-                    </span>
-                </td>
-                <td>
-                    <span class="cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Surface réelle bâtie</strong><br><br>
-                        Surface habitable déclarée dans les données DVF 2025.<br><br>
-                        Correspond à la surface habitable hors caves, garages, terrasses et annexes.">
-                        ${Math.round(opp.surface_reelle_bati)} m²
-                    </span>
-                </td>
-                <td>
-                    <span class="cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Nombre de pièces principales</strong><br><br>
-                        T1 = 1 pièce &nbsp; T2 = 2 pièces &nbsp; T3 = 3 pièces, etc.<br><br>
-                        Ne comprend pas la cuisine, la salle de bain et les WC.">
-                        ${opp.nombre_pieces_principales}
-                    </span>
-                </td>
-                <td>
-                    <span class="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 cursor-help"
-                        data-tooltip="<strong class='text-emerald-400'>Commune</strong><br><br>
-                        Nom de la commune issu de l'API officielle geo.gouv.fr.<br><br>
-                        Zones disponibles dans les filtres :<br><br>
-                        &bull; <strong>Paris & Petite Couronne</strong> : 75, 92, 93, 94<br>
-                        &bull; <strong>Grande Couronne IDF</strong> : 77, 78, 91, 95<br>
-                        &bull; <strong>Grandes Métropoles</strong> : Lyon, Bordeaux, Nantes, Toulouse...<br>
-                        &bull; <strong>Côte d'Azur & PACA</strong> : 06, 13, 83, 84<br>
-                        &bull; <strong>Montagne</strong> : 73, 74, 05, 38<br>
-                        &bull; <strong>Littoral Atlantique</strong> : 33, 44, 85, 17, 64<br>
-                        &bull; <strong>Bretagne & Normandie</strong> : 29, 22, 56, 35, 14, 76<br>
-                        &bull; <strong>Haut de Gamme</strong> : 75, 06, 74, 92, 83<br>
-                        &bull; <strong>Province Dynamique</strong> : 31, 34, 35, 44, 33, 67<br>
-                        &bull; <strong>Province Accessible</strong> : reste du territoire">
+                    <span class="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
                         ${communeNom}
                     </span>
                 </td>
                 <td>
-                    <span class="px-3 py-1 rounded-full text-sm font-semibold cursor-help ${getStandingColor(opp.standing_relative)}"
-                        data-tooltip="<strong class='text-emerald-400'>Standing relatif</strong><br><br>
-                        Positionnement du prix de ce bien par rapport aux autres ventes de la même commune.
-                        Indicateur purement mathématique :<br><br>
-                        <span class='text-red-400'>&bull; Travaux</span> : prix &lt; 70% du marché — bien probablement
-                        dégradé ou vendu en urgence. Fort potentiel de plus-value après rénovation.<br>
-                        <span class='text-amber-400'>&bull; Bonne Affaire</span> : prix entre 70-90% du marché —
-                        bien sous-évalué, opportunité à étudier.<br>
-                        <span class='text-blue-400'>&bull; Standard</span> : prix dans la moyenne du marché local.<br>
-                        <span class='text-emerald-400'>&bull; Premium</span> : prix au-dessus du marché (115-140%) —
-                        bien vendu plus cher que la médiane, que ce soit justifié ou non.<br>
-                        <span class='text-purple-400'>&bull; Prestige</span> : prix très au-dessus du marché (&gt;140%) —
-                        transaction atypique, pas nécessairement un bien de luxe.">
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold ${getStandingColor(opp.standing_relative)}">
                         ${formatStanding(opp.standing_relative)}
                     </span>
                 </td>
@@ -409,8 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 </td>
             `;
         });
-
-        attachTooltips();
 
         const total = allOpportunities.length;
         document.getElementById('paginationOppInfo').textContent =

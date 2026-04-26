@@ -6,8 +6,7 @@
 <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="text-center mb-12 fade-in">
-        <h1
-            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+        <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
             Cartographie Interactive
         </h1>
         <p class="text-xl text-gray-600">Visualisez les transactions immobilières et les clusters de marché</p>
@@ -33,7 +32,7 @@
                     </button>
                     <div id="clusterHelp" class="hidden mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
                         <h4 class="font-bold text-emerald-800 mb-2">Les Segments de Marché</h4>
-                        <p class="text-gray-700 text-sm leading-relaxed mb-3" id="clusterExplanation">
+                        <p class="text-gray-700 text-sm leading-relaxed mb-3">
                             Les segments (clusters) sont créés automatiquement par l'algorithme K-Means qui analyse
                             346 639 transactions.
                         </p>
@@ -110,35 +109,100 @@
                     <i class="fas fa-chart-bar text-emerald-600 text-2xl"></i>
                     <span>Statistiques de la Vue</span>
                 </h3>
-                <ul class="space-y-4 text-lg">
+                <ul class="space-y-5 text-lg">
+
+                    <!-- Points affichés -->
                     <li class="flex justify-between items-center">
-                        <span class="font-semibold text-gray-700">Points affichés :</span>
+                        <span class="flex items-center space-x-1 font-semibold text-gray-700">
+                            <span>Points affichés</span>
+                            <button class="info-btn" data-info="points">
+                                <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                            </button>
+                        </span>
                         <span id="statNbPoints" class="text-emerald-600 font-bold text-2xl">-</span>
                     </li>
+                    <div class="info-box hidden" id="info-points">
+                        Nombre de transactions affichées sur la carte. Il s'agit d'un échantillon aléatoire de 5 000 biens parmi les 346 639 transactions DVF 2025, sélectionné via un pipeline MongoDB ($sample) pour optimiser les performances.
+                    </div>
+
+                    <!-- Prix moyen -->
                     <li class="flex justify-between items-center">
-                        <span class="font-semibold text-gray-700">Prix moyen :</span>
+                        <span class="flex items-center space-x-1 font-semibold text-gray-700">
+                            <span>Prix moyen</span>
+                            <button class="info-btn" data-info="prix-moyen-carte">
+                                <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                            </button>
+                        </span>
                         <span id="statPrixMoyen" class="text-teal-600 font-bold text-2xl">-</span>
                     </li>
+                    <div class="info-box hidden" id="info-prix-moyen-carte">
+                        Prix moyen au m² calculé sur l'échantillon affiché. Cette valeur peut varier légèrement à chaque chargement car l'échantillon est tiré aléatoirement. Elle représente une estimation du prix médian national des appartements français en 2025.
+                    </div>
+
+                    <!-- Nombre de segments -->
                     <li class="flex justify-between items-center">
-                        <span class="font-semibold text-gray-700">Nombre de segments :</span>
+                        <span class="flex items-center space-x-1 font-semibold text-gray-700">
+                            <span>Nombre de segments</span>
+                            <button class="info-btn" data-info="segments">
+                                <i class="fas fa-question-circle text-gray-400 hover:text-emerald-500 text-xs"></i>
+                            </button>
+                        </span>
                         <span id="statNbClusters" class="text-emerald-600 font-bold text-2xl">-</span>
                     </li>
+                    <div class="info-box hidden" id="info-segments">
+                        Nombre de segments (clusters) K-Means visibles dans l'échantillon affiché. L'algorithme identifie 6 segments distincts sur l'ensemble du marché français, chacun représentant un profil de bien homogène en termes de prix, surface et localisation.
+                    </div>
+
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .info-box {
+        background:    #1e293b;
+        color:         white;
+        font-size:     0.72rem;
+        border-radius: 0.5rem;
+        padding:       0.6rem 0.75rem;
+        margin:        0.3rem 0 0.5rem;
+        line-height:   1.5;
+        font-weight:   normal;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    .info-btn {
+        background: none;
+        border:     none;
+        cursor:     pointer;
+        padding:    0;
+        line-height: 1;
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
-<!-- Plotly.js -->
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-
 <script>
     function toggleClusterHelp() {
-        const help = document.getElementById('clusterHelp');
-        help.classList.toggle('hidden');
+        document.getElementById('clusterHelp').classList.toggle('hidden');
     }
+
+    // Infobulles au clic
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.info-btn');
+        if (btn) {
+            e.stopPropagation();
+            const box = document.getElementById(`info-${btn.dataset.info}`);
+            if (!box) return;
+            document.querySelectorAll('.info-box').forEach(b => { if (b !== box) b.classList.add('hidden'); });
+            box.classList.toggle('hidden');
+        } else {
+            document.querySelectorAll('.info-box').forEach(b => b.classList.add('hidden'));
+        }
+    });
 </script>
 <script src="{{ url_for('static', filename='js/cartographie.js') }}"></script>
 {% endblock %}
