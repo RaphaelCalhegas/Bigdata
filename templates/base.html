@@ -14,7 +14,7 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#ecfdf5',
+                            50:  '#ecfdf5',
                             100: '#d1fae5',
                             200: '#a7f3d0',
                             300: '#6ee7b7',
@@ -36,8 +36,7 @@
     </script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -46,54 +45,30 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; }
 
-        /* Scroll Reveal Animation */
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
+        .scroll-reveal { animation: slideUp 0.6s ease-out forwards; }
 
-        .scroll-reveal {
-            animation: slideUp 0.6s ease-out forwards;
-        }
-
-        /* Gradient Animation */
         @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
+        .gradient-animate { background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
 
-        .gradient-animate {
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
-        }
+        .glow       { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+        .glow:hover { box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
 
-        /* Glow effect */
-        .glow {
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-        }
-
-        .glow:hover {
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+        /* ----------------------------------------------------------------
+           NAVBAR — correction coupure des labels longs
+           Force les liens à ne jamais couper sur deux lignes
+        ---------------------------------------------------------------- */
+        nav .nav-link {
+            white-space: nowrap;   /* empêche le retour à la ligne */
         }
     </style>
 
@@ -101,66 +76,76 @@
 </head>
 
 <body class="bg-gradient-to-br from-slate-50 to-emerald-50 min-h-screen font-['Inter']">
+
     <!-- Navigation -->
     <nav class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-emerald-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/" class="flex items-center space-x-3 group">
-                        <div
-                            class="bg-gradient-to-br from-emerald-600 to-teal-600 p-2 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                        </div>
-                        <span
-                            class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                            ImmoPRO
-                        </span>
-                    </a>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <a href="/estimation" class="nav-link {% if request.endpoint == 'estimation' %}active{% endif %}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex justify-between h-16 items-center">
+
+                <!-- Logo -->
+                <a href="/" class="flex items-center space-x-3 group flex-shrink-0">
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-600 p-2 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent whitespace-nowrap">
+                        ImmoPRO
+                    </span>
+                </a>
+
+                <!-- Liens nav — overflow-x auto si très petit écran -->
+                <div class="flex items-center gap-0.5 overflow-x-auto">
+
+                    <a href="/estimation"
+                        class="nav-link {% if request.endpoint == 'estimation' %}active{% endif %}">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
                         <span>Estimation</span>
                     </a>
+
                     <a href="/analyse-marche"
                         class="nav-link {% if request.endpoint == 'analyse_marche' %}active{% endif %}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         <span>Analyse Marché</span>
                     </a>
+
                     <a href="/cartographie"
                         class="nav-link {% if request.endpoint == 'cartographie' %}active{% endif %}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                         </svg>
                         <span>Cartographie</span>
                     </a>
-                    <a href="/clusters" class="nav-link {% if request.endpoint == 'clusters' %}active{% endif %}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <a href="/clusters"
+                        class="nav-link {% if request.endpoint == 'clusters' %}active{% endif %}">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                         <span>Segments</span>
                     </a>
-                    <a href="/similaires" class="nav-link {% if request.endpoint == 'similaires' %}active{% endif %}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <a href="/similaires"
+                        class="nav-link {% if request.endpoint == 'similaires' %}active{% endif %}">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <span>Comparables</span>
                     </a>
+
                     <a href="/opportunites"
                         class="nav-link {% if request.endpoint == 'opportunites' %}active{% endif %}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -168,12 +153,12 @@
                     </a>
 
                     <!-- Séparateur -->
-                    <div class="w-px h-6 bg-slate-200 mx-2"></div>
+                    <div class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0"></div>
 
                     {% if current_user.is_authenticated %}
                         <a href="{{ url_for('profile') }}"
                             class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
@@ -182,18 +167,19 @@
                     {% else %}
                         <a href="{{ url_for('login') }}"
                             class="nav-link {% if request.endpoint == 'login' %}active{% endif %}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                             </svg>
                             <span>Connexion</span>
                         </a>
                         <a href="{{ url_for('register') }}"
-                            class="ml-1 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold rounded-xl shadow hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200">
+                            class="ml-1 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold rounded-xl shadow hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap flex-shrink-0">
                             S'inscrire
                         </a>
                     {% endif %}
                 </div>
+
             </div>
         </div>
     </nav>
@@ -207,6 +193,7 @@
     <footer class="bg-gradient-to-r from-slate-900 to-slate-800 border-t border-emerald-500/20 mt-20">
         <div class="max-w-7xl mx-auto px-4 py-12">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+
                 <div class="space-y-4 scroll-reveal">
                     <div class="flex items-center space-x-2">
                         <div class="bg-gradient-to-br from-emerald-500 to-teal-500 p-2 rounded-lg">
@@ -217,28 +204,23 @@
                         </div>
                         <span class="text-xl font-bold text-white">ImmoPRO</span>
                     </div>
-                    <p class="text-gray-400 text-sm">Analyse immobilière intelligente propulsée par l'IA et le Machine
-                        Learning</p>
+                    <p class="text-gray-400 text-sm">Analyse immobilière intelligente propulsée par l'IA et le Machine Learning</p>
                 </div>
 
                 <div class="scroll-reveal" style="animation-delay: 0.1s;">
                     <h4 class="text-white font-bold mb-4">Fonctionnalités</h4>
                     <ul class="space-y-2 text-gray-400 text-sm">
                         <li class="hover:text-emerald-400 transition-colors cursor-pointer flex items-center space-x-2">
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span>Estimation de prix</span>
+                            <i class="fas fa-chevron-right text-xs"></i><span>Estimation de prix</span>
                         </li>
                         <li class="hover:text-emerald-400 transition-colors cursor-pointer flex items-center space-x-2">
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span>Analyse de marché</span>
+                            <i class="fas fa-chevron-right text-xs"></i><span>Analyse de marché</span>
                         </li>
                         <li class="hover:text-emerald-400 transition-colors cursor-pointer flex items-center space-x-2">
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span>Cartographie interactive</span>
+                            <i class="fas fa-chevron-right text-xs"></i><span>Cartographie interactive</span>
                         </li>
                         <li class="hover:text-emerald-400 transition-colors cursor-pointer flex items-center space-x-2">
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span>Opportunités IA</span>
+                            <i class="fas fa-chevron-right text-xs"></i><span>Opportunités IA</span>
                         </li>
                     </ul>
                 </div>
@@ -247,16 +229,13 @@
                     <h4 class="text-white font-bold mb-4">Technologies</h4>
                     <ul class="space-y-2 text-gray-400 text-sm">
                         <li class="flex items-center space-x-2">
-                            <i class="fas fa-check-circle text-emerald-500"></i>
-                            <span>K-Means Clustering</span>
+                            <i class="fas fa-check-circle text-emerald-500"></i><span>K-Means Clustering</span>
                         </li>
                         <li class="flex items-center space-x-2">
-                            <i class="fas fa-check-circle text-emerald-500"></i>
-                            <span>Isolation Forest</span>
+                            <i class="fas fa-check-circle text-emerald-500"></i><span>Isolation Forest</span>
                         </li>
                         <li class="flex items-center space-x-2">
-                            <i class="fas fa-check-circle text-emerald-500"></i>
-                            <span>DVF 2025 (346K ventes)</span>
+                            <i class="fas fa-check-circle text-emerald-500"></i><span>DVF 2025 (346K ventes)</span>
                         </li>
                     </ul>
                 </div>
@@ -264,24 +243,22 @@
                 <div class="scroll-reveal" style="animation-delay: 0.3s;">
                     <h4 class="text-white font-bold mb-4">Statistiques</h4>
                     <div class="space-y-3">
-                        <div
-                            class="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 hover:scale-105">
+                        <div class="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 hover:scale-105">
                             <p class="text-2xl font-bold text-emerald-400">346K+</p>
                             <p class="text-xs text-gray-400">Transactions analysées</p>
                         </div>
-                        <div
-                            class="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 hover:scale-105">
-                            <p class="text-2xl font-bold text-emerald-400">6,555</p>
+                        <div class="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 hover:scale-105">
+                            <p class="text-2xl font-bold text-emerald-400">6,767</p>
                             <p class="text-xs text-gray-400">Communes couvertes</p>
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <div class="border-t border-gray-700 pt-8 text-center">
                 <p class="text-gray-400 text-sm">&copy; 2026 ImmoPRO - Tous droits réservés</p>
-                <p class="text-gray-500 text-xs mt-2">Plateforme d'analyse immobilière basée sur les données DVF
-                    (Demandes de Valeurs Foncières)</p>
+                <p class="text-gray-500 text-xs mt-2">Plateforme d'analyse immobilière basée sur les données DVF (Demandes de Valeurs Foncières)</p>
             </div>
         </div>
     </footer>
