@@ -1,17 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Profils des Segments - Clustering Immo{% endblock %}
+{% block title %}Profils des Segments - ImmoPRO{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="text-center mb-12 fade-in">
-        <h1
-            class="text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+        <h1 class="text-5xl font-bold mb-4 pb-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
             Profils des 6 Segments de Marché
         </h1>
-        <p class="text-xl text-gray-600">Découvrez les caractéristiques détaillées de chaque cluster identifié par
-            K-Means</p>
+        <p class="text-xl text-gray-600">Découvrez les caractéristiques détaillées de chaque cluster identifié par K-Means</p>
     </div>
 
     <!-- Explication générale -->
@@ -57,14 +55,13 @@
 
     <!-- Grille des clusters -->
     <div class="grid lg:grid-cols-2 gap-6" id="clustersGrid">
-        <!-- Les clusters seront chargés ici via JavaScript -->
+        <!-- Chargé via JavaScript -->
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Couleurs pour chaque cluster
     const clusterColors = {
         0: { primary: '#10b981', light: '#d1fae5', dark: '#059669' },
         1: { primary: '#0891b2', light: '#cffafe', dark: '#0e7490' },
@@ -80,27 +77,25 @@
         for (let i = 0; i < 6; i++) {
             try {
                 const response = await fetch(`/api/cluster-info/${i}`);
-                const data = await response.json();
+                const data     = await response.json();
+                const colors   = clusterColors[i];
+                const label    = i + 1; // Numérotation 1-6 pour l'affichage
 
-                const colors = clusterColors[i];
-
-                const card = document.createElement('div');
-                card.className = 'card hover-lift';
+                const card       = document.createElement('div');
+                card.className   = 'card hover-lift';
                 card.style.borderLeft = `4px solid ${colors.primary}`;
 
                 card.innerHTML = `
                 <div class="card-header" style="background: linear-gradient(135deg, ${colors.light} 0%, white 100%);">
                     <h3 class="text-2xl font-bold flex items-center space-x-3">
-                        <span class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" 
-                              style="background: ${colors.primary};">${i}</span>
+                        <span class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
+                              style="background: ${colors.primary};">${label}</span>
                         <span style="color: ${colors.dark};">${data.name}</span>
                     </h3>
                 </div>
                 <div class="card-body">
-                    <!-- Description -->
                     <p class="text-gray-700 text-base leading-relaxed mb-6">${data.description}</p>
-                    
-                    <!-- Stats clés -->
+
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div class="p-4 rounded-lg" style="background-color: ${colors.light};">
                             <p class="text-sm text-gray-600 mb-1">Prix moyen/m²</p>
@@ -127,55 +122,43 @@
                             </p>
                         </div>
                     </div>
-                    
-                    <!-- Détails -->
+
                     <div class="space-y-3 text-sm">
                         <div class="flex items-start space-x-2">
                             <i class="fas fa-map-marked-alt mt-1" style="color: ${colors.primary};"></i>
-                            <div>
-                                <strong>Zone :</strong> ${data.stats.zone_principale}
-                            </div>
+                            <div><strong>Zone :</strong> ${data.stats.zone_principale}</div>
                         </div>
                         <div class="flex items-start space-x-2">
                             <i class="fas fa-map-pin mt-1" style="color: ${colors.primary};"></i>
-                            <div>
-                                <strong>Départements :</strong> ${data.stats.departements_top?.join(', ')}
-                            </div>
+                            <div><strong>Départements :</strong> ${data.stats.departements_top?.join(', ')}</div>
                         </div>
                         <div class="flex items-start space-x-2">
                             <i class="fas fa-star mt-1" style="color: ${colors.primary};"></i>
-                            <div>
-                                <strong>Standing :</strong> ${data.stats.standing_dominant}
-                            </div>
+                            <div><strong>Standing :</strong> ${data.stats.standing_dominant}</div>
                         </div>
                         <div class="flex items-start space-x-2">
                             <i class="fas fa-door-open mt-1" style="color: ${colors.primary};"></i>
-                            <div>
-                                <strong>Pièces :</strong> ${data.stats.pieces_moyennes?.toFixed(1)} en moyenne
-                            </div>
+                            <div><strong>Pièces :</strong> ${data.stats.pieces_moyennes?.toFixed(1)} en moyenne</div>
                         </div>
                     </div>
-                    
-                    <!-- Badge pourcentage -->
+
                     <div class="mt-6 pt-4 border-t border-gray-200">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold" 
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold"
                               style="background-color: ${colors.light}; color: ${colors.dark};">
                             <i class="fas fa-chart-pie mr-2"></i>
                             ${data.stats.pct_total}% du marché total
                         </span>
                     </div>
-                </div>
-            `;
+                </div>`;
 
                 grid.appendChild(card);
 
             } catch (error) {
-                console.error(`Erreur lors du chargement du cluster ${i}:`, error);
+                console.error(`Erreur cluster ${i}:`, error);
             }
         }
     }
 
-    // Charger au chargement de la page
     document.addEventListener('DOMContentLoaded', loadClusters);
 </script>
 {% endblock %}
