@@ -19,7 +19,7 @@ from utils.clustering import (
 )
 from utils.opportunities import detect_opportunities
 from utils.db import get_db, init_indexes
-from utils.auth import User, register_user, login_user_auth, bcrypt, update_user_preferences
+from utils.auth import User, register_user, login_user_auth, bcrypt, update_user_preferences, update_user_profile
 from utils.recommendations import (
     save_search, get_search_history,
     generate_recommendations, save_recommendations, get_recommendations,
@@ -43,8 +43,8 @@ def inject_user():
     return dict(current_user=current_user)
 
 
-login_manager.login_view         = "login"
-login_manager.login_message      = "Veuillez vous connecter pour accéder à cette page."
+login_manager.login_view             = "login"
+login_manager.login_message          = "Veuillez vous connecter pour accéder à cette page."
 login_manager.login_message_category = "warning"
 
 
@@ -155,6 +155,27 @@ def api_update_preferences():
         }
         success = update_user_preferences(current_user.id, preferences)
         return jsonify({"success": success})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/profile/update", methods=["POST"])
+@login_required
+def api_update_profile():
+    """Met à jour le profil utilisateur (nom, email, mot de passe)."""
+    try:
+        data = request.get_json()
+
+        result = update_user_profile(
+            user_id          = current_user.id,
+            username         = data.get("username", "").strip() or None,
+            email            = data.get("email", "").strip() or None,
+            current_password = data.get("current_password", "") or None,
+            new_password     = data.get("new_password", "") or None
+        )
+
+        return jsonify(result)
+
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -340,12 +361,12 @@ def api_map_data():
         docs = list(data_manager.db["properties"].aggregate([
             {"$sample": {"size": 5000}},
             {"$project": {
-                "_id":           0,
-                "latitude":      1,
-                "longitude":     1,
-                "prix_m2":       1,
+                "_id":            0,
+                "latitude":       1,
+                "longitude":      1,
+                "prix_m2":        1,
                 "cluster_kmeans": 1,
-                "code_commune":  1
+                "code_commune":   1
             }}
         ]))
 
