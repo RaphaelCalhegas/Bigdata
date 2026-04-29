@@ -446,7 +446,7 @@ def api_opportunities():
                 "error":   "La contamination doit être comprise entre 0.01 et 0.10"
             }), 400
 
-        # Échantillonnage directement dans MongoDB — évite de charger 346K lignes en RAM
+        # Échantillonnage directement dans MongoDB — évite de charger 302K lignes en RAM
         docs = list(data_manager.db["properties"].aggregate([
             {"$match": {
                 "valeur_fonciere": {"$gte": 50000},
